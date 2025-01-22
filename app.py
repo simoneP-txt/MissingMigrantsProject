@@ -89,10 +89,10 @@ def timeseries():
     )
 
     filtered_data = datapd[
-        (datapd['Region'].isin(selected_regions)) &
-        (datapd['Incident_Date'] >= start_date) &
-        (datapd['Incident_Date'] <= end_date)
-    ]
+    (datapd['Region'].isin(selected_regions)) &
+    (datapd['Incident_Date'] >= start_date) &
+    (datapd['Incident_Date'] <= end_date)
+    ].copy()
 
     filtered_data["Incident_Date"] = pd.to_datetime(filtered_data["Incident_Date"], errors="coerce")
     filtered_data["Year_Month"] = filtered_data["Incident_Date"].dt.to_period("M")
@@ -244,6 +244,22 @@ def piechart():
         return pd.DataFrame(chart_data)
 
     altair_data = prepare_data_for_alt(datapd)
+    total_deaths_order = altair_data.groupby("Region")["Total"].max().sort_values(ascending=False).index.tolist()
+    
+    highlight = alt.selection_point(
+        name="highlight",
+        fields=["Region", "Category"], 
+        on="pointerover", 
+        nearest=True, 
+        empty="none",
+        clear="mouseout"
+        )
+    
+    change_stroke = alt.condition(
+        highlight,
+        alt.value(3),
+        alt.value(0.5)
+    )
 
     base_chart = alt.Chart(altair_data).transform_aggregate(
         total="sum(Count)", groupby=["Region", "Category", "Total"]
@@ -253,8 +269,11 @@ def piechart():
         base_chart.mark_arc(innerRadius=50, outerRadius=80, stroke="white", strokeWidth=0.5).encode(
             theta=alt.Theta("total:Q", stack=True),
             color=alt.Color("Category:N", scale=alt.Scale(scheme="category10"), title="Categoria"),
-            tooltip=["Region:N", "Category:N", alt.Tooltip("total:Q", title="Numero")]
-        )
+            tooltip=["Region:N", "Category:N", alt.Tooltip("total:Q", title="Numero")],
+            #strokeWidth=change_stroke
+        )#.add_params(
+        #     highlight
+        # )
     )
 
     text_pie = (
@@ -272,13 +291,15 @@ def piechart():
         ).transform_filter(alt.datum.Category == "Male")
     )
 
-    chart = (base_pie + text_pie + text_total).properties(
-        width=150,
-        height=150
-    ).facet(
-        facet=alt.Facet("Region:N", title="Regione"),
-        columns=4
-    )
+    chart = (
+            base_pie + text_pie + text_total
+        ).properties(
+            width=150,
+            height=150
+        ).facet(
+            facet=alt.Facet("Region:N", title="Regione", sort=total_deaths_order),
+            columns=4
+        )
 
     st.altair_chart(chart, use_container_width=True)
     
