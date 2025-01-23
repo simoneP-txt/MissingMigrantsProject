@@ -94,67 +94,69 @@ def timeseries():
     (datapd['Incident_Date'] >= start_date) &
     (datapd['Incident_Date'] <= end_date)
     ].copy()
+    if not filtered_data.empty:
+        filtered_data["Incident_Date"] = pd.to_datetime(filtered_data["Incident_Date"], errors="coerce")
+        filtered_data["Year_Month"] = filtered_data["Incident_Date"].dt.to_period("M")
 
-    filtered_data["Incident_Date"] = pd.to_datetime(filtered_data["Incident_Date"], errors="coerce")
-    filtered_data["Year_Month"] = filtered_data["Incident_Date"].dt.to_period("M")
+        aggregated_data = filtered_data.groupby(["Year_Month", "Region"]).agg({
+            "Total Number of Dead and Missing": "sum"
+        }).reset_index()
 
-    aggregated_data = filtered_data.groupby(["Year_Month", "Region"]).agg({
-        "Total Number of Dead and Missing": "sum"
-    }).reset_index()
+        aggregated_data["Year_Month"] = aggregated_data["Year_Month"].dt.to_timestamp()
 
-    aggregated_data["Year_Month"] = aggregated_data["Year_Month"].dt.to_timestamp()
+        nearest = alt.selection_point(
+            nearest=True, on="pointerover", fields=["Year_Month"], empty="none"
+        )
 
-    nearest = alt.selection_point(
-        nearest=True, on="pointerover", fields=["Year_Month"], empty="none"
-    )
+        line = alt.Chart(aggregated_data).mark_line().encode(
+            x=alt.X("Year_Month:T", title="Anno e Mese"),
+            y=alt.Y("Total Number of Dead and Missing:Q", title="Somma mensile del numero totale di morti e dispersi"),
+            color=alt.Color("Region:N", title="Regione"),
+            tooltip=[
+                alt.Tooltip("Year_Month:T", title="Data"),
+                alt.Tooltip("Region:N", title="Regione"),
+                alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".0f")
+            ]
+        )
 
-    line = alt.Chart(aggregated_data).mark_line().encode(
-        x=alt.X("Year_Month:T", title="Anno e Mese"),
-        y=alt.Y("Total Number of Dead and Missing:Q", title="Somma mensile del numero totale di morti e dispersi"),
-        color=alt.Color("Region:N", title="Regione"),
-        tooltip=[
-            alt.Tooltip("Year_Month:T", title="Data"),
-            alt.Tooltip("Region:N", title="Regione"),
-            alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".0f")
-        ]
-    )
+        selectors = alt.Chart(aggregated_data).mark_point().encode(
+            x="Year_Month:T",
+            opacity=alt.value(0)
+        ).add_params(nearest)
 
-    selectors = alt.Chart(aggregated_data).mark_point().encode(
-        x="Year_Month:T",
-        opacity=alt.value(0)
-    ).add_params(nearest)
+        points = line.mark_point(size=100).encode(
+            x="Year_Month:T",
+            y="Total Number of Dead and Missing:Q",
+            opacity=alt.condition(nearest, alt.value(1), alt.value(0)),
+            tooltip=[
+                alt.Tooltip("Year_Month:T", title="Data"),
+                alt.Tooltip("Region:N", title="Regione"),
+                alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".0f")
+            ]
+        )
 
-    points = line.mark_point(size=100).encode(
-        x="Year_Month:T",
-        y="Total Number of Dead and Missing:Q",
-        opacity=alt.condition(nearest, alt.value(1), alt.value(0)),
-        tooltip=[
-            alt.Tooltip("Year_Month:T", title="Data"),
-            alt.Tooltip("Region:N", title="Regione"),
-            alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".0f")
-        ]
-    )
+        text = line.mark_text(align="left", dx=5, dy=-5).encode(
+            text=alt.condition(nearest, alt.Text("Total Number of Dead and Missing:Q", format=".0f"), alt.value(""))
+        )
 
-    text = line.mark_text(align="left", dx=5, dy=-5).encode(
-        text=alt.condition(nearest, alt.Text("Total Number of Dead and Missing:Q", format=".0f"), alt.value(""))
-    )
+        rules = alt.Chart(aggregated_data).mark_rule(color="gray").encode(
+            x="Year_Month:T",
+            tooltip=[
+                alt.Tooltip("Year_Month:T", title="Data"),
+                alt.Tooltip("Region:N", title="Regione"),
+                alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".0f")
+            ]
+        ).transform_filter(nearest)
 
-    rules = alt.Chart(aggregated_data).mark_rule(color="gray").encode(
-        x="Year_Month:T",
-        tooltip=[
-            alt.Tooltip("Year_Month:T", title="Data"),
-            alt.Tooltip("Region:N", title="Regione"),
-            alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".0f")
-        ]
-    ).transform_filter(nearest)
+        timeseries = alt.layer(
+            line, selectors, points, rules, text
+        ).properties(
+            width=600, height=400
+        )
 
-    timeseries = alt.layer(
-        line, selectors, points, rules, text
-    ).properties(
-        width=600, height=400
-    )
-
-    st.altair_chart(timeseries, use_container_width=True)
+        st.altair_chart(timeseries, use_container_width=True)
+    else:
+        st.warning("Nessuna regione selezionata.")
 
 def barchart():
     # Distribuzione delle variabili categoriche
@@ -304,25 +306,44 @@ def piechart():
 
     st.altair_chart(chart, use_container_width=True)
 
-    chart1 = alt.Chart(datapd).mark_bar().encode(
-    x=alt.X('Region:N', title='Regione'),
-    y=alt.Y('count():Q', title='Numero di Incidenti'),
-    color=alt.Color('Cause of Death:N', title='Causa di Morte'),
-    tooltip=['Region', 'Cause of Death', 'count()']
-    ).properties(
-    width=600,
-    height=400,
-    title='Cause di Morte per Regione'
-    )
-
-    # Visualizzazione del grafico in Streamlit
-    st.altair_chart(chart1, use_container_width=True)
-    
 ####################################################################
 #4. Causa di morte per regione
+def  stackedbarchart():
+    st.write("### Percentuale delle Cause di Morte per Regione")
 
+    datapd_counts = datapd.groupby(['Region', 'Cause of Death']).size().reset_index(name='Count')
+    datapd_counts['Percent'] = datapd_counts.groupby('Region')['Count'].transform(lambda x: x / x.sum() * 100)
 
+    selected_regions = st.multiselect(
+        'Seleziona le regioni da includere:',
+        options=datapd_counts['Region'].unique(),
+        default=datapd_counts['Region'].unique()[:3]
+    )
 
+    # Filtra i dati in base alle regioni selezionate
+    filtered_data = datapd_counts[datapd_counts['Region'].isin(selected_regions)]
+
+    # Creazione del grafico a barre impilate
+    if not filtered_data.empty:
+        chart = alt.Chart(filtered_data).mark_bar().encode(
+            y=alt.X('Region:N', title='Regione'),
+            x=alt.Y('Percent:Q', title='Percentuale', stack="normalize"),
+            color=alt.Color('Cause of Death:N', title='Causa di Morte'),
+            tooltip=[
+                alt.Tooltip('Region:N', title='Regione'),
+                alt.Tooltip('Cause of Death:N', title='Causa di Morte'),
+                alt.Tooltip('Percent:Q', title='Percentuale', format='.2f')
+            ]
+        ).properties(
+            width=600,
+            height=400,
+            title='Percentuale delle Cause di Morte per Regione'
+        )
+        # Mostra il grafico
+        st.altair_chart(chart, use_container_width=True)
+    else:
+        st.warning("Nessuna regione selezionata.")
+        
 ## Implementazione Pagine ######################################################################################
 def page_introduction():
     st.title(":red[Missing] Migrants Project")
@@ -338,6 +359,7 @@ def page_descriptive_analysis():
     timeseries()
     barchart()
     piechart()
+    stackedbarchart()
 
 def page_geo_analysis():
     st.title("Analisi geospaziali")
