@@ -73,7 +73,7 @@ def timeseries():
 
     regions = data['Region'].unique().sort().to_list()
     selected_regions = st.multiselect(
-        'Seleziona le regioni di interesse',
+        'Seleziona le regioni di interesse (max 4):',
         regions,
         default="Mediterranean",
         key="region_selector",
@@ -306,44 +306,104 @@ def piechart():
 
     st.altair_chart(chart, use_container_width=True)
 
-####################################################################
 #4. Causa di morte per regione
-def  stackedbarchart():
+def stackedbarchart():
     st.write("### Percentuale delle Cause di Morte per Regione")
 
+    # Calcolo della percentuale
     datapd_counts = datapd.groupby(['Region', 'Cause of Death']).size().reset_index(name='Count')
     datapd_counts['Percent'] = datapd_counts.groupby('Region')['Count'].transform(lambda x: x / x.sum() * 100)
 
+    # Selezione delle regioni (max 14)
     selected_regions = st.multiselect(
-        'Seleziona le regioni da includere:',
+        'Seleziona le regioni da includere (max 14):',
         options=datapd_counts['Region'].unique(),
-        default=datapd_counts['Region'].unique()[:3]
+        default=datapd_counts['Region'].unique()[:8],
+        max_selections=14
     )
 
     # Filtra i dati in base alle regioni selezionate
     filtered_data = datapd_counts[datapd_counts['Region'].isin(selected_regions)]
 
-    # Creazione del grafico a barre impilate
+    # Selezione della causa di morte tramite st.pills
+    selected_cause = st.pills(
+        "Seleziona la causa di morte per ordinare le regioni:",
+        options=["None"] + datapd_counts['Cause of Death'].unique().tolist(),
+        default="None"
+    )
+
+    #selection = alt.selection_point(
+    #    name="selection",
+    #    on="pointerover",
+    #    fields=['Region', 'Cause of Death'],
+    #    nearest=True,
+    #    empty="none",
+    #    clear="mouseout"
+    #    )
+    #
+    #change_opacity = alt.condition(
+    #    selection,
+    #    alt.value(1),
+    #    alt.value(0.4)
+    #)
+
+    if not selected_cause:
+        st.warning("Devi selezionare una causa di morte per procedere.")
+        return  # Esce dalla funzione se la selezione è vuota
+
     if not filtered_data.empty:
+        # Ordina solo se una causa di morte è selezionata
+        if selected_cause != "None":
+            # Aggiungi tutte le regioni con percentuale 0 per la causa selezionata
+            filtered_data = filtered_data.copy()
+            all_regions = pd.DataFrame({
+                'Region': selected_regions,
+                'Cause of Death': selected_cause,
+                'Count': 0,
+                'Percent': 0
+            })
+            filtered_data = pd.concat([filtered_data, all_regions], ignore_index=True)
+            filtered_data = filtered_data.drop_duplicates(subset=['Region', 'Cause of Death'], keep='first')
+
+            ordered_regions = (
+                filtered_data[filtered_data['Cause of Death'] == selected_cause]
+                .sort_values(by='Percent', ascending=False)['Region']
+                .tolist()
+            )
+
+            # Mantieni l'ordine delle regioni
+            filtered_data['Region'] = pd.Categorical(filtered_data['Region'], categories=ordered_regions, ordered=True)
+        else:
+            # Se "None", lascia l'ordine normale
+            ordered_regions = None
+
+        # Creazione del grafico a barre impilate
         chart = alt.Chart(filtered_data).mark_bar().encode(
-            y=alt.X('Region:N', title='Regione'),
+            y=alt.X('Region:N', title='Regione', sort=ordered_regions),
             x=alt.Y('Percent:Q', title='Percentuale', stack="normalize"),
             color=alt.Color('Cause of Death:N', title='Causa di Morte'),
+            #opacity=change_opacity,
             tooltip=[
                 alt.Tooltip('Region:N', title='Regione'),
                 alt.Tooltip('Cause of Death:N', title='Causa di Morte'),
                 alt.Tooltip('Percent:Q', title='Percentuale', format='.2f')
             ]
+        ).add_params(
+            #selection
         ).properties(
             width=600,
             height=400,
-            title='Percentuale delle Cause di Morte per Regione'
+            title=f"Percentuale delle Cause di Morte per Regione (ordinato per '{selected_cause}')"
         )
+
         # Mostra il grafico
         st.altair_chart(chart, use_container_width=True)
     else:
         st.warning("Nessuna regione selezionata.")
-        
+
+#NON riesco ad implentare il fatto che la causa di morte selezionata sia la osservazione più a
+#sinistra del grafico
+
 ## Implementazione Pagine ######################################################################################
 def page_introduction():
     st.title(":red[Missing] Migrants Project")
