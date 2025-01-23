@@ -414,6 +414,7 @@ def page_introduction():
     Grazie!
     """)
     dataframe()
+    st.write("ciao")
 
 def page_descriptive_analysis():
     timeseries()
