@@ -61,6 +61,7 @@ def dataframe():
 
     st.markdown(table_markdown)
     st.markdown('La fonte dei dati si trova a questo [link](https://www.kaggle.com/datasets/snocco/missing-migrants-project).', unsafe_allow_html=True)
+
 ###################################################################################################################################
 # ANALISI DESCRITTIVA DEI DATI
 def timeseries():
@@ -98,7 +99,7 @@ def timeseries():
     filtered_data["Year_Month"] = filtered_data["Incident_Date"].dt.to_period("M")
 
     aggregated_data = filtered_data.groupby(["Year_Month", "Region"]).agg({
-        "Total Number of Dead and Missing": "mean"
+        "Total Number of Dead and Missing": "sum"
     }).reset_index()
 
     aggregated_data["Year_Month"] = aggregated_data["Year_Month"].dt.to_timestamp()
@@ -109,12 +110,12 @@ def timeseries():
 
     line = alt.Chart(aggregated_data).mark_line().encode(
         x=alt.X("Year_Month:T", title="Anno e Mese"),
-        y=alt.Y("Total Number of Dead and Missing:Q", title="Media mensile del numero totale di morti e dispersi"),
+        y=alt.Y("Total Number of Dead and Missing:Q", title="Somma mensile del numero totale di morti e dispersi"),
         color=alt.Color("Region:N", title="Regione"),
         tooltip=[
             alt.Tooltip("Year_Month:T", title="Data"),
             alt.Tooltip("Region:N", title="Regione"),
-            alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".2f")
+            alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".0f")
         ]
     )
 
@@ -130,12 +131,12 @@ def timeseries():
         tooltip=[
             alt.Tooltip("Year_Month:T", title="Data"),
             alt.Tooltip("Region:N", title="Regione"),
-            alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".2f")
+            alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".0f")
         ]
     )
 
     text = line.mark_text(align="left", dx=5, dy=-5).encode(
-        text=alt.condition(nearest, alt.Text("Total Number of Dead and Missing:Q", format=".2f"), alt.value(""))
+        text=alt.condition(nearest, alt.Text("Total Number of Dead and Missing:Q", format=".0f"), alt.value(""))
     )
 
     rules = alt.Chart(aggregated_data).mark_rule(color="gray").encode(
@@ -143,7 +144,7 @@ def timeseries():
         tooltip=[
             alt.Tooltip("Year_Month:T", title="Data"),
             alt.Tooltip("Region:N", title="Regione"),
-            alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".2f")
+            alt.Tooltip("Total Number of Dead and Missing:Q", title="Morti e dispersi", format=".0f")
         ]
     ).transform_filter(nearest)
 
@@ -302,6 +303,20 @@ def piechart():
         )
 
     st.altair_chart(chart, use_container_width=True)
+
+    chart1 = alt.Chart(datapd).mark_bar().encode(
+    x=alt.X('Region:N', title='Regione'),
+    y=alt.Y('count():Q', title='Numero di Incidenti'),
+    color=alt.Color('Cause of Death:N', title='Causa di Morte'),
+    tooltip=['Region', 'Cause of Death', 'count()']
+    ).properties(
+    width=600,
+    height=400,
+    title='Cause di Morte per Regione'
+    )
+
+    # Visualizzazione del grafico in Streamlit
+    st.altair_chart(chart1, use_container_width=True)
     
 ####################################################################
 #4. Causa di morte per regione
