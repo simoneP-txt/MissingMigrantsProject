@@ -64,10 +64,15 @@ def dataframe():
 
 ###################################################################################################################################
 # ANALISI DESCRITTIVA DEI DATI
+#0. Mappa delle regioni del dataset
+def map():
+    st.title("Mappa delle Regioni")
+    st.write("sezione in fase di sviluppo.")
+
+#1. Serie storica del numero totale di morti e dispersi per regione
 def timeseries():
-    st.title("Analisi Descrittive")
+    st.write("### Serie storica del numero totale di morti e dispersi per regione")
     
-    # Serie storica del numero totale di morti e dispersi
     datapd['Incident_Date'] = pd.to_datetime(datapd['Incident Date'], format='%a, %m/%d/%Y - %H:%M', errors='coerce').dt.date
     datapd.dropna(subset=['Incident_Date'], inplace=True)
 
@@ -158,8 +163,8 @@ def timeseries():
     else:
         st.warning("Nessuna regione selezionata.")
 
+#2. Distribuzione delle variabili categoriche
 def barchart():
-    # Distribuzione delle variabili categoriche
     st.write("### Distribuzione delle variabili categoriche")
     columns = ['Region', 'Cause of Death', 'Migrantion route']
 
@@ -221,8 +226,8 @@ def barchart():
 
     st.altair_chart(histogram, use_container_width=True)
 
+#3. Distribuzione assoluta delle vittime per regione
 def piechart():
-    # Distribuzione assoluta delle vittime per regione
     st.write("### Distribuzione assoluta delle vittime per regione")
 
     def prepare_data_for_alt(df):
@@ -400,7 +405,6 @@ def stackedbarchart():
         st.altair_chart(chart, use_container_width=True)
     else:
         st.warning("Nessuna regione selezionata.")
-
 #NON riesco ad implentare il fatto che la causa di morte selezionata sia la osservazione più a
 #sinistra del grafico
 
@@ -417,6 +421,7 @@ def page_introduction():
     
 
 def page_descriptive_analysis():
+    st.title("Analisi Descrittive")
     timeseries()
     barchart()
     piechart()
