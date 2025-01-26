@@ -534,7 +534,7 @@ def page_introduction():
 
 def page_descriptive_analysis():
     st.title("Analisi Descrittive")
-    map()
+    #map()
     timeseries()
     barchart()
     piechart()
