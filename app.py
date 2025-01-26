@@ -485,6 +485,10 @@ def map_points():
         lambda x: math.sqrt(x)
     )
 
+    # Tronca tutto dopo l'anno usando split
+    datapd_cleaned["Incident Date"] = datapd_cleaned["Incident Date"].str.split(' - ').str[0]
+    print(datapd_cleaned["Incident Date"])
+
     # Creazione del layer Pydeck
     layer = pdk.Layer(
         "ScatterplotLayer",
@@ -495,7 +499,7 @@ def map_points():
         filled=True,
         radius_scale=1000,  # Amplifica il raggio calcolato
         radius_min_pixels=1.5,
-        radius_max_pixels=1000000,
+        radius_max_pixels=1000,
         line_width_min_pixels=1,
         get_position="Coordinates",  # L'ordine è ora corretto: [longitudine, latitudine]
         get_radius="radius",
@@ -510,12 +514,13 @@ def map_points():
 
     # Configurazione della mappa Pydeck
     map_deck = pdk.Deck(
-        layers=[layer],
-        initial_view_state=view_state,
-        tooltip={"text": "Totale morti e dispersi: {Total Number of Dead and Missing}"},
-        map_provider="mapbox",
-        map_style = pdk.map_styles.SATELLITE
+    layers=[layer],
+    initial_view_state=view_state,
+    tooltip={"html": "Totale di morti e dispersi: {Total Number of Dead and Missing}<br>Data della tragedia: {Incident Date}"},
+    map_provider="mapbox",
+    map_style=pdk.map_styles.SATELLITE
     )
+
 
     # Mostra la mappa nell'app Streamlit
     st.pydeck_chart(map_deck)
