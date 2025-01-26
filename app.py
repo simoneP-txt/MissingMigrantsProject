@@ -505,8 +505,8 @@ def map_points():
 
     # Configurazione della vista iniziale della mappa
     view_state = pdk.ViewState(latitude=30, longitude=-8, zoom=1, 
-                               bearing=0, #mposta la rotazione della mappa (0 significa che la mappa non è ruotata
-                               pitch=0) #Imposta l'inclinazione della mappa (0 significa che la mappa è vista dall'alto, senza inclinazione 3D)
+                               bearing=0, #mposta la rotazione della mappa 0 significa che la mappa non è ruotata
+                               pitch=0) #Imposta l'inclinazione della mappa 0 significa che la mappa è vista dall'alto, senza inclinazione 3D
 
     # Configurazione della mappa Pydeck
     map_deck = pdk.Deck(
