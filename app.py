@@ -485,16 +485,12 @@ def map_points():
         lambda x: math.sqrt(x)
     )
 
-    # Debugging: stampa statistiche per verificare i valori del raggio
-    print(datapd_cleaned["radius"].describe())
-    print(datapd_cleaned[["Total Number of Dead and Missing", "radius"]].head(10))
-
     # Creazione del layer Pydeck
     layer = pdk.Layer(
         "ScatterplotLayer",
         datapd_cleaned,
         pickable=True,
-        opacity=0.8,
+        opacity=1,
         stroked=True,
         filled=True,
         radius_scale=1000,  # Amplifica il raggio calcolato
@@ -503,12 +499,14 @@ def map_points():
         line_width_min_pixels=1,
         get_position="Coordinates",  # L'ordine è ora corretto: [longitudine, latitudine]
         get_radius="radius",
-        get_fill_color=[139, 0, 0],
+        get_fill_color=[170, 0, 0],
         get_line_color=[0, 0, 0],
     )
 
     # Configurazione della vista iniziale della mappa
-    view_state = pdk.ViewState(latitude=20, longitude=-8, zoom=1, bearing=0, pitch=0)
+    view_state = pdk.ViewState(latitude=30, longitude=-8, zoom=1, 
+                               bearing=0, #mposta la rotazione della mappa (0 significa che la mappa non è ruotata
+                               pitch=0) #Imposta l'inclinazione della mappa (0 significa che la mappa è vista dall'alto, senza inclinazione 3D)
 
     # Configurazione della mappa Pydeck
     map_deck = pdk.Deck(
@@ -516,7 +514,7 @@ def map_points():
         initial_view_state=view_state,
         tooltip={"text": "Totale morti e dispersi: {Total Number of Dead and Missing}"},
         map_provider="mapbox",
-        map_style= pdk.map_styles.SATELLITE
+        map_style = pdk.map_styles.SATELLITE
     )
 
     # Mostra la mappa nell'app Streamlit
