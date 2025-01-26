@@ -262,6 +262,7 @@ dependencies = [
     { name = "datetime" },
     { name = "pandas" },
     { name = "polars" },
+    { name = "pydeck" },
     { name = "streamlit" },
 ]
 
@@ -271,6 +272,7 @@ requires-dist = [
     { name = "datetime", specifier = ">=5.5" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "polars", specifier = ">=1.20.0" },
+    { name = "pydeck", specifier = ">=0.9.1" },
     { name = "streamlit", specifier = ">=1.41.1" },
 ]
 

@@ -4,6 +4,7 @@ import altair as alt
 import pandas as pd
 import numpy as np
 import datetime as dt
+import pydeck as pdk
 
 st.set_page_config(
     page_title="Missing Migrants Project",
@@ -65,9 +66,65 @@ def dataframe():
 ###################################################################################################################################
 # ANALISI DESCRITTIVA DEI DATI
 #0. Mappa delle regioni del dataset
-def map():
-    st.title("Mappa delle Regioni")
-    st.write("sezione in fase di sviluppo.")
+
+# def map():
+#     st.write("### Mappa delle Regioni")
+#     st.write("sezione in fase di sviluppo.")
+#     #https://gist.github.com/jrrickard/8755532505a40f3b8317?short_path=999f34b#file-oceans-topo-json
+#     #https://gist.githubusercontent.com/jrrickard/8755532505a40f3b8317/raw/ecd98849d3a5f4502b773b986254f19af3b8d8fb/oceans.json
+#     #https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json
+
+#     countries_map_50 = alt.topo_feature("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json", 'countries')
+#     #print(datapd['Region'].unique())
+#     #map50 = (alt.Chart(countries_map_50)
+#     #         .mark_geoshape(stroke = "black").encode(
+#     #    color=alt.Color('lifeExp:Q', scale=alt.Scale(scheme='plasma', reverse = True)),
+#     #    tooltip=['country:N', 'lifeExp:Q']  # tooltip per visualizzare informazioni
+#     #    ).transform_lookup(
+#     #    lookup='properties.name',  # chiave comune per unire (nel TopoJSON)
+#     #    from_=alt.LookupData(data_07_new, 'country', ['lifeExp'])  # fonte dei dati
+#     #    ).project(
+#     #    type='mercator'
+#     #    ).properties(
+#     #    width=800,
+#     #    height=600,
+#     #    title="Aspettativa di vita nel 2007"
+#     #    )
+#     #)
+
+#     background = alt.Chart(countries_map_50).mark_geoshape(
+#         fill='lightgray',
+#         stroke='darkgray'
+#     ).project(
+#         type= 'mercator'
+#     ).properties(
+#         width=800, 
+#         height=600
+#     ).encode(tooltip=alt.value(None))
+
+#     data = pd.DataFrame({
+#         'x': [0],   # Coordinata x
+#         'y': [0],   # Coordinata y
+#         'width': [800],  # Larghezza del rettangolo
+#         'height': [600]  # Altezza del rettangolo
+#     })
+
+#     # Creazione del grafico
+#     rect = alt.Chart(data).mark_rect(
+#         cornerRadius=215,
+#         color="whitesmoke"
+#     ).encode(
+#         x=alt.X('x:Q', scale=alt.Scale(domain=[0, 800]), axis = None),  # Scala per l'asse x
+#         x2=alt.X2('width'),  # Fine del rettangolo sull'asse x
+#         y=alt.Y('y:Q', scale=alt.Scale(domain=[0, 600]), axis = None),  # Scala per l'asse y
+#         y2=alt.Y2('height')  # Fine del rettangolo sull'asse y
+#     )
+
+#     st.altair_chart(
+#         background,
+#         use_container_width=True
+#     )
+
 
 #1. Serie storica del numero totale di morti e dispersi per regione
 def timeseries():
@@ -408,6 +465,61 @@ def stackedbarchart():
 #NON riesco ad implentare il fatto che la causa di morte selezionata sia la osservazione più a
 #sinistra del grafico
 
+###################################################################################################################################
+# ANALISI GEOSPAZIALE
+#1. Mappa dei punti sulla base delle coordinate
+def map_points():
+    st.write("### Mappa dei punti sulla base delle coordinate")
+
+    # Pulizia del DataFrame eliminando righe con NaN in 'Coordinates' e creando una copia
+    datapd_cleaned = datapd.dropna(subset=["Coordinates"]).copy()
+
+    # Conversione delle coordinate in liste di float (invertendo ordine lat/lon)
+    datapd_cleaned["Coordinates"] = datapd_cleaned["Coordinates"].apply(
+        lambda x: [float(coord.strip()) for coord in x.split(",")][::-1]  # Inverte l'ordine lat/lon
+    )
+
+    # Calcolo del raggio con scala logaritmica per enfatizzare le differenze
+    max_dead_and_missing = datapd_cleaned["Total Number of Dead and Missing"].max()
+    datapd_cleaned["radius"] = datapd_cleaned["Total Number of Dead and Missing"].apply(
+        lambda x: max(1, (np.log1p(x) / np.log1p(max_dead_and_missing)) * 50)  # Scala logaritmica
+    )
+
+    # Debugging: stampa statistiche per verificare i valori del raggio
+    print(datapd_cleaned["radius"].describe())
+    print(datapd_cleaned[["Total Number of Dead and Missing", "radius"]].head(10))
+
+    # Creazione del layer Pydeck
+    layer = pdk.Layer(
+        "ScatterplotLayer",
+        datapd_cleaned,
+        pickable=True,
+        opacity=0.8,
+        stroked=True,
+        filled=True,
+        radius_scale=1,  # Mantieni neutra la scala, normalizziamo manualmente il raggio
+        radius_min_pixels=2,
+        #radius_max_pixels=50,
+        line_width_min_pixels=1,
+        get_position="Coordinates",  # L'ordine è ora corretto: [longitudine, latitudine]
+        get_radius=100,
+        get_fill_color=[255, 0, 0],
+        get_line_color=[0, 0, 0],
+    )
+
+    # Configurazione della vista iniziale della mappa
+    view_state = pdk.ViewState(latitude=20, longitude=0, zoom=2, bearing=0, pitch=0)
+
+    # Configurazione della mappa Pydeck
+    map_deck = pdk.Deck(
+        layers=[layer],
+        initial_view_state=view_state,
+        tooltip={"text": "Totale morti e dispersi: {Total Number of Dead and Missing}"}
+    )
+
+    # Mostra la mappa nell'app Streamlit
+    st.pydeck_chart(map_deck)
+
 ## Implementazione Pagine ######################################################################################
 def page_introduction():
     st.title(":red[Missing] Migrants Project")
@@ -422,6 +534,7 @@ def page_introduction():
 
 def page_descriptive_analysis():
     st.title("Analisi Descrittive")
+    map()
     timeseries()
     barchart()
     piechart()
@@ -429,7 +542,7 @@ def page_descriptive_analysis():
 
 def page_geo_analysis():
     st.title("Analisi geospaziali")
-    st.write("sezione in fase di sviluppo.")
+    map_points()
 
 def page_group_analysis():
     st.title("Analisi dei gruppi")
