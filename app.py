@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import pydeck as pdk
+import math
 
 st.set_page_config(
     page_title="Missing Migrants Project",
@@ -479,10 +480,9 @@ def map_points():
         lambda x: [float(coord.strip()) for coord in x.split(",")][::-1]  # Inverte l'ordine lat/lon
     )
 
-    # Calcolo del raggio con scala logaritmica per enfatizzare le differenze
-    max_dead_and_missing = datapd_cleaned["Total Number of Dead and Missing"].max()
+    # Calcolo del raggio usando la radice quadrata
     datapd_cleaned["radius"] = datapd_cleaned["Total Number of Dead and Missing"].apply(
-        lambda x: max(1, (np.log1p(x) / np.log1p(max_dead_and_missing)) * 50)  # Scala logaritmica
+        lambda x: math.sqrt(x)
     )
 
     # Debugging: stampa statistiche per verificare i valori del raggio
@@ -497,24 +497,26 @@ def map_points():
         opacity=0.8,
         stroked=True,
         filled=True,
-        radius_scale=1,  # Mantieni neutra la scala, normalizziamo manualmente il raggio
-        radius_min_pixels=2,
-        #radius_max_pixels=50,
+        radius_scale=1000,  # Amplifica il raggio calcolato
+        radius_min_pixels=1.5,
+        radius_max_pixels=1000000,
         line_width_min_pixels=1,
         get_position="Coordinates",  # L'ordine è ora corretto: [longitudine, latitudine]
-        get_radius=100,
-        get_fill_color=[255, 0, 0],
+        get_radius="radius",
+        get_fill_color=[139, 0, 0],
         get_line_color=[0, 0, 0],
     )
 
     # Configurazione della vista iniziale della mappa
-    view_state = pdk.ViewState(latitude=20, longitude=0, zoom=2, bearing=0, pitch=0)
+    view_state = pdk.ViewState(latitude=20, longitude=-8, zoom=1, bearing=0, pitch=0)
 
     # Configurazione della mappa Pydeck
     map_deck = pdk.Deck(
         layers=[layer],
         initial_view_state=view_state,
-        tooltip={"text": "Totale morti e dispersi: {Total Number of Dead and Missing}"}
+        tooltip={"text": "Totale morti e dispersi: {Total Number of Dead and Missing}"},
+        map_provider="mapbox",
+        map_style= pdk.map_styles.SATELLITE
     )
 
     # Mostra la mappa nell'app Streamlit
