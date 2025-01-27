@@ -21,11 +21,16 @@ def load_data():
         "Minimum Estimated Number of Missing", "Total Number of Dead and Missing", 
         "Number of Survivors", "Number of Females", "Number of Males", "Number of Children",
         "Cause of Death", "Coordinates", "Migrantion route", "UNSD Geographical Grouping"])
-)
-    return data
+    )
+    data = data.with_columns(
+    data["Incident Date"]
+    .str.extract(r"^(\w{3}, \d{2}/\d{2}/\d{4})")  # Estrarre solo giorno della settimana e data
+    .alias("Incident Date")  # Sovrascrive la colonna esistente
+    )
+    datapd = data.to_pandas()
+    return data, datapd
 
-data = load_data()
-datapd = data.to_pandas()
+data, datapd = load_data()
 
 def dataframe():
     st.dataframe(data, use_container_width=True)
@@ -131,7 +136,7 @@ def dataframe():
 def timeseries():
     st.write("### Serie storica del numero totale di morti e dispersi per regione")
     
-    datapd['Incident_Date'] = pd.to_datetime(datapd['Incident Date'], format='%a, %m/%d/%Y - %H:%M', errors='coerce').dt.date
+    datapd['Incident_Date'] = pd.to_datetime(datapd['Incident Date'], format='%a, %m/%d/%Y', errors='coerce').dt.date
     datapd.dropna(subset=['Incident_Date'], inplace=True)
 
     regions = data['Region'].unique().sort().to_list()
@@ -485,9 +490,7 @@ def map_points():
         lambda x: math.sqrt(x)
     )
 
-    # Tronca tutto dopo l'anno usando split
-    datapd_cleaned["Incident Date"] = datapd_cleaned["Incident Date"].str.split(' - ').str[0]
-    print(datapd_cleaned["Incident Date"])
+    datapd_cleaned[["lng", "lat"]] = pd.DataFrame(datapd_cleaned["Coordinates"].tolist(), index=datapd_cleaned.index)
 
     # Creazione del layer Pydeck
     layer = pdk.Layer(
@@ -503,19 +506,21 @@ def map_points():
         line_width_min_pixels=1,
         get_position="Coordinates",  # L'ordine è ora corretto: [longitudine, latitudine]
         get_radius="radius",
-        get_fill_color=[170, 0, 0],
+        get_fill_color=[180, 0, 0],
         get_line_color=[0, 0, 0],
+        aggregation=pdk.types.String("SUM")
     )
 
     # Configurazione della vista iniziale della mappa
-    view_state = pdk.ViewState(latitude=30, longitude=-8, zoom=1, 
-                               bearing=0, #mposta la rotazione della mappa 0 significa che la mappa non è ruotata
-                               pitch=0) #Imposta l'inclinazione della mappa 0 significa che la mappa è vista dall'alto, senza inclinazione 3D
+    view = pdk.data_utils.compute_view(datapd_cleaned[["lng", "lat"]])
+    view.zoom = 1  # Maggiore dettaglio
+    view.latitude=30
+    view.longitude=-8
 
     # Configurazione della mappa Pydeck
     map_deck = pdk.Deck(
     layers=[layer],
-    initial_view_state=view_state,
+    initial_view_state=view,
     tooltip={"html": "Totale di morti e dispersi: {Total Number of Dead and Missing}<br>Data della tragedia: {Incident Date}"},
     map_provider="mapbox",
     map_style=pdk.map_styles.SATELLITE
@@ -524,6 +529,68 @@ def map_points():
 
     # Mostra la mappa nell'app Streamlit
     st.pydeck_chart(map_deck)
+
+    return datapd_cleaned
+
+#2. Heatmap dei punti sulla base delle coordinate
+def heatmap(datapd_cleaned):
+    # Calcolo dei pesi (amplificati per una maggiore visibilità)
+    datapd_cleaned["weight"] = (
+        datapd_cleaned["Total Number of Dead and Missing"] / datapd_cleaned["Total Number of Dead and Missing"].max()
+    ) * 100  # Fattore di scala per aumentare i pesi
+
+    # Dividi "Coordinates" in colonne separate per lat e lng
+    datapd_cleaned[["lng", "lat"]] = pd.DataFrame(datapd_cleaned["Coordinates"].tolist(), index=datapd_cleaned.index)
+
+    # Configura la vista iniziale della mappa
+    view = pdk.data_utils.compute_view(datapd_cleaned[["lng", "lat"]])
+    view.zoom = 1.7  # Maggiore dettaglio
+    view.latitude=30
+    view.longitude=-43
+
+    COLOR_BREWER_SCALE2 = [
+    [255, 99, 71],    # Rosso leggermente più chiaro
+    [255, 69, 0],     # Rosso acceso
+    [220, 20, 60],    # Rosso scuro
+    [139, 0, 139],    # Viola intenso
+    [75, 0, 130],     # Viola super scuro (indaco)
+    [30, 0, 45],      # Colore molto scuro tendente al nero
+    ]
+
+    COLOR_BREWER_SCALE3 = [
+    [255, 102, 10],   # Arancione vivace
+    [255, 69, 0],     # Rosso chiaro intenso
+    [220, 20, 60],    # Rosso scuro
+    [139, 0, 139],    # Viola intenso
+    [75, 0, 130],     # Viola super scuro (indaco)
+    [30, 0, 45],      # Colore scurissimo tendente al nero
+    ]
+
+
+    # Configura il layer Heatmap
+    heatmap_layer = pdk.Layer(
+        "HeatmapLayer",
+        data=datapd_cleaned,
+        opacity=1,
+        get_position=["lng", "lat"],  # Coordinate lat/lon
+        aggregation=pdk.types.String("SUM"),  # Aggregazione basata sulla somma
+        color_range=COLOR_BREWER_SCALE2,  # Nuova scala di colori
+        threshold=0.1,  # Soglia abbassata per intensificare la visibilità
+        get_weight="weight",  # Peso per ogni punto
+        pickable=True,  # Abilita il tooltip per ogni punto
+    )
+
+    # Crea la mappa Pydeck
+    heatmap_map = pdk.Deck(
+        layers=[heatmap_layer],
+        initial_view_state=view,
+        map_provider="mapbox",
+        map_style=pdk.map_styles.SATELLITE,
+        tooltip={"text": "Heatmap basata sui pesi calcolati"},
+    )
+
+    # Mostra la mappa in Streamlit
+    st.pydeck_chart(heatmap_map)
 
 ## Implementazione Pagine ######################################################################################
 def page_introduction():
@@ -547,7 +614,8 @@ def page_descriptive_analysis():
 
 def page_geo_analysis():
     st.title("Analisi geospaziali")
-    map_points()
+    datapd_cleaned = map_points()
+    heatmap(datapd_cleaned)
 
 def page_group_analysis():
     st.title("Analisi dei gruppi")
