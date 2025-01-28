@@ -612,7 +612,7 @@ def heatmap(datapd_cleaned):
     heatmap_layer = pdk.Layer(
         "HeatmapLayer",
         data=datapd_cleaned,
-        opacity=1,
+        opacity=0.9,
         get_position=["lng", "lat"],  # Coordinate lat/lon
         aggregation=pdk.types.String("SUM"),  # Aggregazione basata sulla somma
         color_range=COLOR_BREWER_SCALE5,  # scala di colori
@@ -700,7 +700,7 @@ def points_map_by_cat(datapd_cleaned):
             "style": {"color": "white"},
         },
         map_provider="mapbox",
-        map_style=pdk.map_styles.CARTO_DARK#SATELLITE,
+        map_style=pdk.map_styles.SATELLITE,
     )
 
     # Mostra la mappa
