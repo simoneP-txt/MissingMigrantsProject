@@ -113,17 +113,6 @@ def regions_map():
             lookup="properties.name",
             from_=alt.LookupData(df_countries, "country", ["country", "region"])
         )
-        .project(
-            type="mercator",
-            scale=82,
-            translate=[245, 250],
-            center=[0, 0],
-            clipExtent=[[0, 0], [600, 350]]
-        )
-        .properties(
-            width=1000,
-            height=700
-        )
     )
 
     background = alt.Chart(countries_map_50).mark_geoshape(
@@ -146,13 +135,13 @@ def regions_map():
     # Mostra la mappa
     combined_map = alt.layer(background, map_chart).project(
         type="mercator",
-        scale=82,
-        translate=[245, 250],
-        center=[0, 0],
-        clipExtent=[[0, 0], [600, 350]]
+        scale=89,
+        translate=[295, 166],
+        center=[20, 50],
+        clipExtent=[[0, 0], [800, 400]]
     ).properties(
-        width=1000,
-        height=700
+        width=900,
+        height=400
     )
 
     # Mostra la mappa in Streamlit
@@ -160,7 +149,6 @@ def regions_map():
 
     # Mostra la legenda HTML
     st.markdown(legend_html, unsafe_allow_html=True)
-
 
 #1. Serie storica del numero totale di morti e dispersi per regione
 def timeseries():
