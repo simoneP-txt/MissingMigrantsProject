@@ -6,6 +6,7 @@ import numpy as np
 import datetime as dt
 import pydeck as pdk
 import math
+import matplotlib.pyplot as plt
 
 st.set_page_config(
     page_title="Missing Migrants Project",
@@ -73,63 +74,92 @@ def dataframe():
 # ANALISI DESCRITTIVA DEI DATI
 #0. Mappa delle regioni del dataset
 
-# def map():
-#     st.write("### Mappa delle Regioni")
-#     st.write("sezione in fase di sviluppo.")
-#     #https://gist.github.com/jrrickard/8755532505a40f3b8317?short_path=999f34b#file-oceans-topo-json
-#     #https://gist.githubusercontent.com/jrrickard/8755532505a40f3b8317/raw/ecd98849d3a5f4502b773b986254f19af3b8d8fb/oceans.json
-#     #https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json
+def regions_map():
+    st.write("### Mappa delle Regioni")
 
-#     countries_map_50 = alt.topo_feature("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json", 'countries')
-#     #print(datapd['Region'].unique())
-#     #map50 = (alt.Chart(countries_map_50)
-#     #         .mark_geoshape(stroke = "black").encode(
-#     #    color=alt.Color('lifeExp:Q', scale=alt.Scale(scheme='plasma', reverse = True)),
-#     #    tooltip=['country:N', 'lifeExp:Q']  # tooltip per visualizzare informazioni
-#     #    ).transform_lookup(
-#     #    lookup='properties.name',  # chiave comune per unire (nel TopoJSON)
-#     #    from_=alt.LookupData(data_07_new, 'country', ['lifeExp'])  # fonte dei dati
-#     #    ).project(
-#     #    type='mercator'
-#     #    ).properties(
-#     #    width=800,
-#     #    height=600,
-#     #    title="Aspettativa di vita nel 2007"
-#     #    )
-#     #)
+    # Carica il dataset aggiornato
+    file_path = "countries.csv"
+    df_countries = pd.read_csv(file_path)
 
-#     background = alt.Chart(countries_map_50).mark_geoshape(
-#         fill='lightgray',
-#         stroke='darkgray'
-#     ).project(
-#         type= 'mercator'
-#     ).properties(
-#         width=800, 
-#         height=600
-#     ).encode(tooltip=alt.value(None))
+    # Definisce la palette di colori
+    color_palette = [
+        "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF",
+        "#00FFFF", "#800000", "#008000", "#000080", "#808000",
+        "#FFA500", "#4B0082", "#FFC0CB", "#ADD8E6", "#006400", "#FF00DD"
+    ]
 
-#     data = pd.DataFrame({
-#         'x': [0],   # Coordinata x
-#         'y': [0],   # Coordinata y
-#         'width': [800],  # Larghezza del rettangolo
-#         'height': [600]  # Altezza del rettangolo
-#     })
+    # Assegna un colore a ogni regione
+    region_list = df_countries["region"].dropna().unique().tolist()
+    region_color_dict = {region: color_palette[i % len(color_palette)] for i, region in enumerate(region_list)}
 
-#     # Creazione del grafico
-#     rect = alt.Chart(data).mark_rect(
-#         cornerRadius=215,
-#         color="whitesmoke"
-#     ).encode(
-#         x=alt.X('x:Q', scale=alt.Scale(domain=[0, 800]), axis = None),  # Scala per l'asse x
-#         x2=alt.X2('width'),  # Fine del rettangolo sull'asse x
-#         y=alt.Y('y:Q', scale=alt.Scale(domain=[0, 600]), axis = None),  # Scala per l'asse y
-#         y2=alt.Y2('height')  # Fine del rettangolo sull'asse y
-#     )
+    # Mappa principale
+    countries_map_50 = alt.topo_feature("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json", 'countries')
 
-#     st.altair_chart(
-#         background,
-#         use_container_width=True
-#     )
+    map_chart = (
+        alt.Chart(countries_map_50)
+        .mark_geoshape(stroke="black", strokeWidth=0.5)
+        .encode(
+            color=alt.condition(
+                alt.datum.region != "Null",
+                alt.Color("region:N", scale=alt.Scale(domain=list(region_color_dict.keys()), range=list(region_color_dict.values())), legend=None), 
+                alt.value("transparent")  # Rende i paesi con "Null" trasparenti
+            ),
+            tooltip=[
+                alt.Tooltip("properties.name:N", title="Paese"),
+                alt.Tooltip("region:N", title="Regione")
+            ]
+        )
+        .transform_lookup(
+            lookup="properties.name",
+            from_=alt.LookupData(df_countries, "country", ["country", "region"])
+        )
+        .project(
+            type="mercator",
+            scale=82,
+            translate=[245, 250],
+            center=[0, 0],
+            clipExtent=[[0, 0], [600, 350]]
+        )
+        .properties(
+            width=1000,
+            height=700
+        )
+    )
+
+    background = alt.Chart(countries_map_50).mark_geoshape(
+        fill='lightgray',
+        stroke='darkgray'
+    ).encode(tooltip=alt.value(None))
+
+    # Rimuoviamo "Null" dalla legenda
+    legend_df = pd.DataFrame({"region": list(region_color_dict.keys()), "color": list(region_color_dict.values())})
+    legend_df = legend_df[legend_df["region"] != "Null"]
+
+    # Creazione della legenda con HTML + CSS
+    legend_html = "<div style='display: flex; flex-wrap: wrap;'>"
+    for _, row in legend_df.iterrows():
+        color_box = f"<div style='width: 20px; height: 20px; background-color: {row['color']}; margin-right: 10px;'></div>"
+        text_label = f"<span style='color: white; font-size: 14px; margin-right: 15px;'>{row['region']}</span>"
+        legend_html += f"<div style='display: flex; align-items: center; margin-bottom: 5px;'>{color_box}{text_label}</div>"
+    legend_html += "</div>"
+
+    # Mostra la mappa
+    combined_map = alt.layer(background, map_chart).project(
+        type="mercator",
+        scale=82,
+        translate=[245, 250],
+        center=[0, 0],
+        clipExtent=[[0, 0], [600, 350]]
+    ).properties(
+        width=1000,
+        height=700
+    )
+
+    # Mostra la mappa in Streamlit
+    st.altair_chart(combined_map, use_container_width=True)
+
+    # Mostra la legenda HTML
+    st.markdown(legend_html, unsafe_allow_html=True)
 
 
 #1. Serie storica del numero totale di morti e dispersi per regione
@@ -474,7 +504,7 @@ def stackedbarchart():
 ###################################################################################################################################
 # ANALISI GEOSPAZIALE
 #1. Mappa dei punti sulla base delle coordinate
-def map_points():
+def points_map():
     st.write("### Mappa dei punti sulla base delle coordinate")
 
     # Pulizia del DataFrame eliminando righe con NaN in 'Coordinates' e creando una copia
@@ -506,7 +536,7 @@ def map_points():
         line_width_min_pixels=1,
         get_position="Coordinates",  # L'ordine è ora corretto: [longitudine, latitudine]
         get_radius="radius",
-        get_fill_color=[180, 0, 0],
+        get_fill_color=[204, 0, 0],
         get_line_color=[0, 0, 0],
         aggregation=pdk.types.String("SUM")
     )
@@ -523,7 +553,7 @@ def map_points():
     initial_view_state=view,
     tooltip={"html": "Totale di morti e dispersi: {Total Number of Dead and Missing}<br>Data della tragedia: {Incident Date}"},
     map_provider="mapbox",
-    map_style=pdk.map_styles.SATELLITE
+    map_style=pdk.map_styles.SATELLITE #CARTO_DARK
     )
 
 
@@ -534,6 +564,7 @@ def map_points():
 
 #2. Heatmap dei punti sulla base delle coordinate
 def heatmap(datapd_cleaned):
+    st.write("### Heatmap delle regioni geografiche più colpite")
     # Calcolo dei pesi (amplificati per una maggiore visibilità)
     datapd_cleaned["weight"] = (
         datapd_cleaned["Total Number of Dead and Missing"] / datapd_cleaned["Total Number of Dead and Missing"].max()
@@ -566,6 +597,28 @@ def heatmap(datapd_cleaned):
     [30, 0, 45],      # Colore scurissimo tendente al nero
     ]
 
+    COLOR_BREWER_SCALE4 = [
+    [220, 20, 60],   # Rosso scuro (Crimson)
+    [178, 34, 34],   # Rosso intenso (Firebrick)
+    [128, 0, 128],   # Viola puro (Purple)
+    [75, 0, 130],    # Indaco
+    [48, 25, 52],    # Viola molto scuro
+    [30, 0, 30],     # Quasi nero con una leggera tonalità violacea
+    [15, 0, 15]      # Quasi nero
+    ]
+
+    COLOR_BREWER_SCALE5 = [
+    #[255, 0, 0],       
+    [230, 0, 0],     
+    [204, 0, 0],     
+    [179, 0, 0],     
+    [153, 0, 0],   
+    [128, 0, 0],
+    [102, 0, 0],
+    [77, 0, 0],
+    [51, 0, 0],
+    [26, 0, 0]
+    ]   
 
     # Configura il layer Heatmap
     heatmap_layer = pdk.Layer(
@@ -574,10 +627,11 @@ def heatmap(datapd_cleaned):
         opacity=1,
         get_position=["lng", "lat"],  # Coordinate lat/lon
         aggregation=pdk.types.String("SUM"),  # Aggregazione basata sulla somma
-        color_range=COLOR_BREWER_SCALE2,  # Nuova scala di colori
-        threshold=0.1,  # Soglia abbassata per intensificare la visibilità
+        color_range=COLOR_BREWER_SCALE5,  # scala di colori
+        threshold=0.07,  # Soglia abbassata per intensificare la visibilità
         get_weight="weight",  # Peso per ogni punto
-        pickable=True,  # Abilita il tooltip per ogni punto
+        pickable=True, # Abilita il tooltip per ogni punto
+        stroked = True  
     )
 
     # Crea la mappa Pydeck
@@ -591,6 +645,96 @@ def heatmap(datapd_cleaned):
 
     # Mostra la mappa in Streamlit
     st.pydeck_chart(heatmap_map)
+
+#3. Mappa dei punti colorati per categoria
+def points_map_by_cat(datapd_cleaned):
+    st.write("### Mappa dei punti colorati per categoria")
+
+    # Opzioni per la selezione della categoria
+    categories = ["Cause of Death", "Migrantion route"]
+    selected_category = st.pills(
+        "Seleziona una categoria per colorare i punti sulla mappa",
+        options=categories,
+        default="Cause of Death"
+    )
+
+    # Se l'utente non seleziona una categoria, mostra un avviso
+    if not selected_category:
+        st.warning("Seleziona una categoria per procedere.")
+        return
+
+    # Controllo che la categoria esista nel dataset
+    if selected_category not in datapd_cleaned.columns:
+        st.error(f"La categoria '{selected_category}' non è disponibile nel dataset.")
+        return
+
+    # Rimuoviamo eventuali righe con NaN nella categoria selezionata
+    datapd_filtered = datapd_cleaned.dropna(subset=[selected_category]).copy()
+
+    # Mappatura dei colori univoci per la categoria selezionata
+    unique_categories = datapd_filtered[selected_category].unique()
+    color_palette = [
+        [255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0], [255, 0, 255],
+        [0, 255, 255], [128, 0, 0], [0, 128, 0], [0, 0, 128], [128, 128, 0],
+        [255, 165, 0], [75, 0, 130], [255, 192, 203], [173, 216, 230], [0, 100, 0]
+    ]  # Espandibile se ci sono più categorie
+
+    color_mapping = {category: color_palette[i % len(color_palette)] for i, category in enumerate(unique_categories)}
+    datapd_filtered["color"] = datapd_filtered[selected_category].map(color_mapping)
+
+    # Creazione del layer Pydeck
+    layer = pdk.Layer(
+        "ScatterplotLayer",
+        datapd_filtered,
+        pickable=True,
+        opacity=1,
+        stroked=True,
+        filled=True,
+        radius_scale=1000,
+        radius_min_pixels=1.5,
+        radius_max_pixels=1000,
+        line_width_min_pixels=1,
+        get_position=["lng", "lat"],  # Usa direttamente lng e lat
+        get_radius="radius",
+        get_fill_color="color",
+        get_line_color=[0, 0, 0],
+    )
+
+    # Configurazione della vista iniziale della mappa
+    view = pdk.ViewState(latitude=30, longitude=-8, zoom=1)
+
+    # Configurazione della mappa Pydeck
+    map_deck = pdk.Deck(
+        layers=[layer],
+        initial_view_state=view,
+        tooltip={
+            "html": f"{selected_category}: {{{selected_category}}}<br>Totale morti e dispersi: {{Total Number of Dead and Missing}}",
+            "style": {"color": "white"},
+        },
+        map_provider="mapbox",
+        map_style=pdk.map_styles.CARTO_DARK#SATELLITE,
+    )
+
+    # Mostra la mappa
+    st.pydeck_chart(map_deck)
+
+    # Aggiunta della legenda con i colori associati alle categorie
+    st.write("#### Legenda dei colori")
+
+    # Creazione della legenda usando Markdown e HTML
+    legend_html = "<div style='display: flex; flex-wrap: wrap; gap: 10px;'>"
+    for category, color in color_mapping.items():
+        color_rgb = f"rgb({color[0]}, {color[1]}, {color[2]})"
+        legend_html += f"""
+<div style='display: flex; align-items: center; margin-bottom: 5px;'>
+    <div style='width: 20px; height: 20px; background-color: {color_rgb}; margin-right: 10px; border: 1px solid #000;'></div>
+    <span style='font-size: 14px;'>{category}</span>
+</div>
+        """
+    legend_html += "</div>"
+
+    # Mostra la legenda in Streamlit
+    st.markdown(legend_html, unsafe_allow_html=True)
 
 ## Implementazione Pagine ######################################################################################
 def page_introduction():
@@ -606,7 +750,7 @@ def page_introduction():
 
 def page_descriptive_analysis():
     st.title("Analisi Descrittive")
-    #map()
+    regions_map()
     timeseries()
     barchart()
     piechart()
@@ -614,8 +758,9 @@ def page_descriptive_analysis():
 
 def page_geo_analysis():
     st.title("Analisi geospaziali")
-    datapd_cleaned = map_points()
+    datapd_cleaned = points_map()
     heatmap(datapd_cleaned)
+    points_map_by_cat(datapd_cleaned)
 
 def page_group_analysis():
     st.title("Analisi dei gruppi")

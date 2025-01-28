@@ -1,13 +1,13 @@
 country,region
-Zimbabwe,Null
-Zambia,Null
-Yemen,Null
-Vietnam,Null
-Venezuela,Null
+Zimbabwe,Eastern Africa
+Zambia,Eastern Africa
+Yemen,Western Asia
+Vietnam,South-eastern Asia
+Venezuela,South America
 Vatican,Null
 Vanuatu,Null
-Uzbekistan,Null
-Uruguay,Null
+Uzbekistan,Central Asia
+Uruguay,South America
 Micronesia,Null
 Marshall Is.,Null
 N. Mariana Is.,Null
@@ -15,7 +15,7 @@ U.S. Virgin Is.,Null
 Guam,Null
 American Samoa,Null
 Puerto Rico,Null
-United States of America,Null
+United States of America,North America
 S. Geo. and the Is.,Null
 Br. Indian Ocean Ter.,Null
 Saint Helena,Null
@@ -30,136 +30,136 @@ Montserrat,Null
 Jersey,Null
 Guernsey,Null
 Isle of Man,Null
-United Kingdom,Null
-United Arab Emirates,Null
-Ukraine,Null
-Uganda,Null
-Turkmenistan,Null
-Turkey,Null
-Tunisia,Null
-Trinidad and Tobago,Null
+United Kingdom,Europe
+United Arab Emirates,Western Asia
+Ukraine,Europe
+Uganda,Eastern Africa
+Turkmenistan,Central Asia
+Turkey,Western Asia
+Tunisia,Northern Africa
+Trinidad and Tobago,Caribbean
 Tonga,Null
-Togo,Null
-Timor-Leste,Null
-Thailand,Null
-Tanzania,Null
-Tajikistan,Null
-Taiwan,Null
-Syria,Null
-Switzerland,Null
-Sweden,Null
+Togo,Western Africa
+Timor-Leste,South-eastern Asia
+Thailand,South-eastern Asia
+Tanzania,Eastern Africa
+Tajikistan,Central Asia
+Taiwan,Eastern Asia
+Syria,Western Asia
+Switzerland,Europe
+Sweden,Europe
 eSwatini,Null
-Suriname,Null
-S. Sudan,Null
-Sudan,Null
-Sri Lanka,Null
-Spain,Null
-South Korea,Null
-South Africa,Null
-Somalia,Null
-Somaliland,Null
+Suriname,South America
+S. Sudan,Middle Africa
+Sudan,Northern Africa
+Sri Lanka,Southern Asia
+Spain,Europe
+South Korea,Eastern Asia
+South Africa,Southern Africa
+Somalia,Eastern Africa
+Somaliland,Eastern Africa
 Solomon Is.,Null
-Slovakia,Null
-Slovenia,Null
-Singapore,Null
-Sierra Leone,Null
-Seychelles,Null
-Serbia,Null
-Senegal,Null
-Saudi Arabia,Null
+Slovakia,Europe
+Slovenia,Europe
+Singapore,South-eastern Asia
+Sierra Leone,Western Africa
+Seychelles,Eastern Africa
+Serbia,Europe
+Senegal,Western Africa
+Saudi Arabia,Western Asia
 São Tomé and Principe,Null
 San Marino,Null
 Samoa,Null
 St. Vin. and Gren.,Null
 Saint Lucia,Null
 St. Kitts and Nevis,Null
-Rwanda,Null
+Rwanda,Eastern Africa
 Russia,Null
-Romania,Null
-Qatar,Null
-Portugal,Null
-Poland,Null
-Philippines,Null
-Peru,Null
-Paraguay,Null
+Romania,Europe
+Qatar,Western Asia
+Portugal,Europe
+Poland,Europe
+Philippines,South-eastern Asia
+Peru,South America
+Paraguay,South America
 Papua New Guinea,Null
-Panama,Null
+Panama,Central America
 Palau,Null
-Pakistan,Null
-Oman,Null
-Norway,Null
-North Korea,Null
-Nigeria,Null
-Niger,Null
-Nicaragua,Null
+Pakistan,Southern Asia
+Oman,Western Asia
+Norway,Europe
+North Korea,Eastern Asia
+Nigeria,Western Africa
+Niger,Western Africa
+Nicaragua,Central America
 New Zealand,Null
 Niue,Null
 Cook Is.,Null
-Netherlands,Null
+Netherlands,Europe
 Aruba,Null
 Curaçao,Null
-Nepal,Null
+Nepal,Southern Asia
 Nauru,Null
-Namibia,Null
-Mozambique,Null
-Morocco,Null
-W. Sahara,Null
-Montenegro,Null
-Mongolia,Null
-Moldova,Null
-Monaco,Null
-Mexico,Null
-Mauritius,Null
-Mauritania,Null
-Malta,Null
-Mali,Null
-Maldives,Null
-Malaysia,Null
-Malawi,Null
-Madagascar,Null
-Macedonia,Null
-Luxembourg,Null
-Lithuania,Null
+Namibia,Southern Africa
+Mozambique,Eastern Africa
+Morocco,Northern Africa
+W. Sahara,Western Africa
+Montenegro,Europe
+Mongolia,Eastern Asia
+Moldova,Europe
+Monaco,Europe
+Mexico,Central America
+Mauritius,Eastern Africa
+Mauritania,Western Africa
+Malta,Europe
+Mali,Western Africa
+Maldives,Southern Asia
+Malaysia,South-eastern Asia
+Malawi,Eastern Africa
+Madagascar,Eastern Africa
+Macedonia,Europe
+Luxembourg,Europe
+Lithuania,Europe
 Liechtenstein,Null
-Libya,Null
-Liberia,Null
-Lesotho,Null
-Lebanon,Null
-Latvia,Null
-Laos,Null
-Kyrgyzstan,Null
-Kuwait,Null
-Kosovo,Null
+Libya,Northern Africa
+Liberia,Western Africa
+Lesotho,Southern Africa
+Lebanon,Western Asia
+Latvia,Europe
+Laos,South-eastern Asia
+Kyrgyzstan,Central Asia
+Kuwait,Western Asia
+Kosovo,Europe
 Kiribati,Null
-Kenya,Null
-Kazakhstan,Null
-Jordan,Null
-Japan,Null
-Jamaica,Null
-Italy,Null
-Israel,Null
-Palestine,Null
-Ireland,Null
-Iraq,Null
-Iran,Null
-Indonesia,Null
-India,Null
-Iceland,Null
-Hungary,Null
-Honduras,Null
-Haiti,Null
-Guyana,Null
-Guinea-Bissau,Null
-Guinea,Null
-Guatemala,Null
+Kenya,Eastern Africa
+Kazakhstan,Central Asia
+Jordan,Western Asia
+Japan,Eastern Asia
+Jamaica,Caribbean
+Italy,Europe
+Israel,Western Asia
+Palestine,Western Asia
+Ireland,Europe
+Iraq,Western Asia
+Iran,Southern Asia
+Indonesia,South-eastern Asia
+India,Southern Asia
+Iceland,Europe
+Hungary,Europe
+Honduras,Central America
+Haiti,Caribbean
+Guyana,South America
+Guinea-Bissau,Western Africa
+Guinea,Western Africa
+Guatemala,Central America
 Grenada,Null
-Greece,Null
-Ghana,Null
-Germany,Null
-Georgia,Null
-Gambia,Null
-Gabon,Null
-France,Null
+Greece,Europe
+Ghana,Western Africa
+Germany,Europe
+Georgia,Western Asia
+Gambia,Western Africa
+Gabon,Middle Africa
+France,Europe
 St. Pierre and Miquelon,Null
 Wallis and Futuna Is.,Null
 St-Martin,Null
@@ -168,75 +168,75 @@ Fr. Polynesia,Null
 New Caledonia,Null
 Fr. S. Antarctic Lands,Null
 Åland,Null
-Finland,Null
+Finland,Europe
 Fiji,Null
-Ethiopia,Null
-Estonia,Null
-Eritrea,Null
+Ethiopia,Eastern Africa
+Estonia,Europe
+Eritrea,Eastern Africa
 Eq. Guinea,Null
-El Salvador,Null
-Egypt,Null
-Ecuador,Null
-Dominican Rep.,Null
+El Salvador,Central America
+Egypt,Northern Africa
+Ecuador,South America
+Dominican Rep.,Caribbean
 Dominica,Null
-Djibouti,Null
+Djibouti,Eastern Africa
 Greenland,Null
 Faeroe Is.,Null
-Denmark,Null
-Czechia,Null
+Denmark,Europe
+Czechia,Europe
 N. Cyprus,Null
-Cyprus,Null
-Cuba,Null
-Croatia,Null
-Côte d'Ivoire,Null
-Costa Rica,Null
-Dem. Rep. Congo,Null
-Congo,Null
-Comoros,Null
-Colombia,Null
-China,Null
+Cyprus,Europe
+Cuba,Caribbean
+Croatia,Europe
+Côte d'Ivoire,Western Africa
+Costa Rica,Central America
+Dem. Rep. Congo,Middle Africa
+Congo,Middle Africa
+Comoros,Eastern Africa
+Colombia,South America
+China,Eastern Asia
 Macao,Null
-Hong Kong,Null
-Chile,Null
-Chad,Null
-Central African Rep.,Null
+Hong Kong,Eastern Asia
+Chile,South America
+Chad,Middle Africa
+Central African Rep.,Middle Africa
 Cabo Verde,Null
-Canada,Null
-Cameroon,Null
-Cambodia,Null
-Myanmar,Null
-Burundi,Null
-Burkina Faso,Null
-Bulgaria,Null
-Brunei,Null
-Brazil,Null
-Botswana,Null
-Bosnia and Herz.,Null
-Bolivia,Null
-Bhutan,Null
-Benin,Null
-Belize,Null
-Belgium,Null
-Belarus,Null
-Barbados,Null
-Bangladesh,Null
-Bahrain,Null
-Bahamas,Null
-Azerbaijan,Null
-Austria,Null
+Canada,North America
+Cameroon,Middle Africa
+Cambodia,South-eastern Asia
+Myanmar,South-eastern Asia
+Burundi,Eastern Africa
+Burkina Faso,Western Africa
+Bulgaria,Europe
+Brunei,South-eastern Asia
+Brazil,South America
+Botswana,Southern Africa
+Bosnia and Herz.,Europe
+Bolivia,South America
+Bhutan,Southern Asia
+Benin,Western Africa
+Belize,Central America
+Belgium,Europe
+Belarus,Europe
+Barbados,Caribbean
+Bangladesh,Southern Asia
+Bahrain,Western Asia
+Bahamas,Caribbean
+Azerbaijan,Western Asia
+Austria,Europe
 Australia,Null
 Indian Ocean Ter.,Null
 Heard I. and McDonald Is.,Null
 Norfolk Island,Null
 Ashmore and Cartier Is.,Null
-Armenia,Null
-Argentina,Null
+Armenia,Western Asia
+Argentina,South America
 Antigua and Barb.,Null
-Angola,Null
+Angola,Middle Africa
 Andorra,Null
-Algeria,Null
-Albania,Null
-Afghanistan,Null
+Algeria,Northern Africa
+Albania,Europe
+Afghanistan,Southern Asia
 Siachen Glacier,Null
 Antarctica,Null
 Sint Maarten,Null
