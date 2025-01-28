@@ -83,9 +83,11 @@ def regions_map():
 
     # Definisce la palette di colori
     color_palette = [
-        "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF",
-        "#00FFFF", "#800000", "#008000", "#000080", "#808000",
-        "#FFA500", "#4B0082", "#FFC0CB", "#ADD8E6", "#006400", "#FF00DD"
+    "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF",  # Rosso, Verde, Blu, Giallo, Magenta
+    "#00FFFF", "#800000", "#008000", "#000080", "#808000",  # Ciano, Marrone scuro, Verde scuro, Blu scuro, Verde oliva
+    "#FFA500", "#4B0082", "#FFC0CB", "#ADD8E6", "#209186",  # Arancione, Indaco, Rosa, Azzurro chiaro, Turchese
+    "#FF00DD", "#8B4513", "#7FFF00", "#DC143C", "#00CED1",  # Fucsia, Marrone cioccolato, Verde lime, Cremisi, Turchese scuro
+    "#8A2BE2", "#FFD700"  # Blu violetto, Oro
     ]
 
     # Assegna un colore a ogni regione
@@ -662,11 +664,30 @@ def points_map_by_cat(datapd_cleaned):
     # Mappatura dei colori univoci per la categoria selezionata
     unique_categories = datapd_filtered[selected_category].unique()
     color_palette = [
-        [255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0], [255, 0, 255],
-        [0, 255, 255], [128, 0, 0], [0, 128, 0], [0, 0, 128], [128, 128, 0],
-        [255, 165, 0], [75, 0, 130], [255, 192, 203], [173, 216, 230], [0, 100, 0]
-    ]  # Espandibile se ci sono più categorie
-
+    [255, 0, 0],    # Rosso
+    [0, 255, 0],    # Verde
+    [0, 0, 255],    # Blu
+    [255, 255, 0],  # Giallo
+    [255, 0, 255],  # Magenta
+    [0, 255, 255],  # Ciano
+    [128, 0, 0],    # Marrone scuro
+    [0, 128, 0],    # Verde scuro
+    [0, 0, 128],    # Blu scuro
+    [128, 128, 0],  # Verde oliva
+    [255, 165, 0],  # Arancione
+    [75, 0, 130],   # Indaco
+    [255, 192, 203],# Rosa
+    [173, 216, 230],# Azzurro chiaro
+    [32, 145, 134], # Turchese
+    [255, 0, 221],  # Fucsia
+    [139, 69, 19],  # Marrone cioccolato
+    [127, 255, 0],  # Verde lime
+    [220, 20, 60],  # Cremisi
+    [0, 206, 209],  # Turchese scuro
+    [138, 43, 226], # Blu violetto
+    [255, 215, 0]   # Oro
+    ]
+ 
     color_mapping = {category: color_palette[i % len(color_palette)] for i, category in enumerate(unique_categories)}
     datapd_filtered["color"] = datapd_filtered[selected_category].map(color_mapping)
 
