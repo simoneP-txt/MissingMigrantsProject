@@ -73,28 +73,32 @@ def dataframe():
 ###################################################################################################################################
 # ANALISI DESCRITTIVA DEI DATI
 #0. Mappa delle regioni del dataset
+def hex_to_rgb(hex_color):
+    """Converte un colore esadecimale in formato RGB."""
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
 def regions_map():
     st.write("### Mappa delle Regioni")
 
-    #carico il dataset aggiornato
+    # Carico il dataset aggiornato
     file_path = "countries.csv"
     df_countries = pd.read_csv(file_path)
 
-    #definisco la palette di colori
+    # Definisco la palette di colori
     color_palette = [
-    "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF",  # Rosso, Verde, Blu, Giallo, Magenta
-    "#00FFFF", "#800000", "#008000", "#000080", "#808000",  # Ciano, Marrone scuro, Verde scuro, Blu scuro, Verde oliva
-    "#FFA500", "#4B0082", "#FFC0CB", "#8B4513", "#209186",  # Arancione, Indaco, Rosa, Marrone cioccolato, Turchese
-    "#FF00DD", "#ADD8E6", "#7FFF00", "#DC143C", "#00CED1",  # Fucsia, Azzurro chiaro, Verde lime, Cremisi, Turchese scuro
-    "#8A2BE2", "#FFD700"  # Blu violetto, Oro
+        "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF",  # Rosso, Verde, Blu, Giallo, Magenta
+        "#00FFFF", "#800000", "#008000", "#000080", "#808000",  # Ciano, Marrone scuro, Verde scuro, Blu scuro, Verde oliva
+        "#FFA500", "#4B0082", "#FFC0CB", "#8B4513", "#209186",  # Arancione, Indaco, Rosa, Marrone cioccolato, Turchese
+        "#FF00DD", "#ADD8E6", "#7FFF00", "#DC143C", "#00CED1",  # Fucsia, Azzurro chiaro, Verde lime, Cremisi, Turchese scuro
+        "#8A2BE2", "#FFD700"  # Blu violetto, Oro
     ]
 
-    #assegno un colore a ogni regione
+    # Assegno un colore a ogni regione
     region_list = df_countries["region"].dropna().unique().tolist()
     region_color_dict = {region: color_palette[i % len(color_palette)] for i, region in enumerate(region_list)}
-
-    #mappa principale
+    
+    # Mappa principale
     countries_map_50 = alt.topo_feature("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json", 'countries')
 
     map_chart = (
@@ -104,7 +108,7 @@ def regions_map():
             color=alt.condition(
                 alt.datum.region != "Null",
                 alt.Color("region:N", scale=alt.Scale(domain=list(region_color_dict.keys()), range=list(region_color_dict.values())), legend=None), 
-                alt.value("transparent")  #paesi con "Null" trasparenti
+                alt.value("transparent")  # Paesi con "Null" trasparenti
             ),
             tooltip=[
                 alt.Tooltip("properties.name:N", title="Paese"),
@@ -122,19 +126,25 @@ def regions_map():
         stroke='darkgray'
     ).encode(tooltip=alt.value(None))
 
-    #tolgo "Null" dalla legenda
+    # Tolgo "Null" dalla legenda
     legend_df = pd.DataFrame({"region": list(region_color_dict.keys()), "color": list(region_color_dict.values())})
     legend_df = legend_df[legend_df["region"] != "Null"]
 
-    #creo della legenda con HTML + CSS (????)
-    legend_html = "<div style='display: flex; flex-wrap: wrap;'>"
-    for _, row in legend_df.iterrows():
-        color_box = f"<div style='width: 20px; height: 20px; background-color: {row['color']}; margin-right: 10px;'></div>"
-        text_label = f"<span style='color: white; font-size: 14px; margin-right: 15px;'>{row['region']}</span>"
-        legend_html += f"<div style='display: flex; align-items: center; margin-bottom: 5px;'>{color_box}{text_label}</div>"
+    # Creo la legenda con HTML + CSS
+    legend_html = "<div style='display: flex; flex-wrap: wrap; gap: 10px;'>"
+    for region, color in region_color_dict.items():
+        if region != "Null":
+            color_rgb = hex_to_rgb(color)
+            color_rgb_str = f"rgb({color_rgb[0]}, {color_rgb[1]}, {color_rgb[2]})"
+            legend_html += f"""
+<div style='display: flex; align-items: center; margin-bottom: 5px;'>
+    <div style='width: 20px; height: 20px; background-color: {color_rgb_str}; margin-right: 10px; border: 1px solid #000;'></div>
+    <span style='font-size: 14px; color: white;'>{region}</span>
+</div>
+        """
     legend_html += "</div>"
 
-    #mostro la mappa
+    # Mostro la mappa
     combined_map = alt.layer(background, map_chart).project(
         type="mercator",
         scale=89,
@@ -146,10 +156,10 @@ def regions_map():
         height=400
     )
 
-    #mostro la mappa in Streamlit
+    # Mostro la mappa in Streamlit
     st.altair_chart(combined_map, use_container_width=True)
 
-    #mostro la legenda HTML
+    # Mostro la legenda HTML
     st.markdown(legend_html, unsafe_allow_html=True)
 
 #1. Serie storica del numero totale di morti e dispersi per regione
@@ -257,6 +267,10 @@ def barchart():
         default="Region"
     )
 
+    if not selected_variable:
+        st.warning("Seleziona una variabile per visualizzare la distribuzione.")
+        return
+    
     filtered_data1 = data[[selected_variable]].drop_nans()
 
     highlight = alt.selection_point(
@@ -604,7 +618,7 @@ def heatmap(datapd_cleaned):
     [26, 0, 0]
     ]   
 
-    # Configura il layer Heatmap
+    # configura il layer Heatmap
     heatmap_layer = pdk.Layer(
         "HeatmapLayer",
         data=datapd_cleaned,
