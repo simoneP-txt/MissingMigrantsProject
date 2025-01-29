@@ -77,24 +77,24 @@ def dataframe():
 def regions_map():
     st.write("### Mappa delle Regioni")
 
-    # Carica il dataset aggiornato
+    #carico il dataset aggiornato
     file_path = "countries.csv"
     df_countries = pd.read_csv(file_path)
 
-    # Definisce la palette di colori
+    #definisco la palette di colori
     color_palette = [
     "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF",  # Rosso, Verde, Blu, Giallo, Magenta
     "#00FFFF", "#800000", "#008000", "#000080", "#808000",  # Ciano, Marrone scuro, Verde scuro, Blu scuro, Verde oliva
-    "#FFA500", "#4B0082", "#FFC0CB", "#ADD8E6", "#209186",  # Arancione, Indaco, Rosa, Azzurro chiaro, Turchese
-    "#FF00DD", "#8B4513", "#7FFF00", "#DC143C", "#00CED1",  # Fucsia, Marrone cioccolato, Verde lime, Cremisi, Turchese scuro
+    "#FFA500", "#4B0082", "#FFC0CB", "#8B4513", "#209186",  # Arancione, Indaco, Rosa, Marrone cioccolato, Turchese
+    "#FF00DD", "#ADD8E6", "#7FFF00", "#DC143C", "#00CED1",  # Fucsia, Azzurro chiaro, Verde lime, Cremisi, Turchese scuro
     "#8A2BE2", "#FFD700"  # Blu violetto, Oro
     ]
 
-    # Assegna un colore a ogni regione
+    #assegno un colore a ogni regione
     region_list = df_countries["region"].dropna().unique().tolist()
     region_color_dict = {region: color_palette[i % len(color_palette)] for i, region in enumerate(region_list)}
 
-    # Mappa principale
+    #mappa principale
     countries_map_50 = alt.topo_feature("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json", 'countries')
 
     map_chart = (
@@ -104,7 +104,7 @@ def regions_map():
             color=alt.condition(
                 alt.datum.region != "Null",
                 alt.Color("region:N", scale=alt.Scale(domain=list(region_color_dict.keys()), range=list(region_color_dict.values())), legend=None), 
-                alt.value("transparent")  # Rende i paesi con "Null" trasparenti
+                alt.value("transparent")  #paesi con "Null" trasparenti
             ),
             tooltip=[
                 alt.Tooltip("properties.name:N", title="Paese"),
@@ -122,11 +122,11 @@ def regions_map():
         stroke='darkgray'
     ).encode(tooltip=alt.value(None))
 
-    # Rimuoviamo "Null" dalla legenda
+    #tolgo "Null" dalla legenda
     legend_df = pd.DataFrame({"region": list(region_color_dict.keys()), "color": list(region_color_dict.values())})
     legend_df = legend_df[legend_df["region"] != "Null"]
 
-    # Creazione della legenda con HTML + CSS
+    #creo della legenda con HTML + CSS (????)
     legend_html = "<div style='display: flex; flex-wrap: wrap;'>"
     for _, row in legend_df.iterrows():
         color_box = f"<div style='width: 20px; height: 20px; background-color: {row['color']}; margin-right: 10px;'></div>"
@@ -134,7 +134,7 @@ def regions_map():
         legend_html += f"<div style='display: flex; align-items: center; margin-bottom: 5px;'>{color_box}{text_label}</div>"
     legend_html += "</div>"
 
-    # Mostra la mappa
+    #mostro la mappa
     combined_map = alt.layer(background, map_chart).project(
         type="mercator",
         scale=89,
@@ -146,10 +146,10 @@ def regions_map():
         height=400
     )
 
-    # Mostra la mappa in Streamlit
+    #mostro la mappa in Streamlit
     st.altair_chart(combined_map, use_container_width=True)
 
-    # Mostra la legenda HTML
+    #mostro la legenda HTML
     st.markdown(legend_html, unsafe_allow_html=True)
 
 #1. Serie storica del numero totale di morti e dispersi per regione
@@ -497,22 +497,22 @@ def stackedbarchart():
 def points_map():
     st.write("### Mappa dei punti sulla base delle coordinate")
 
-    # Pulizia del DataFrame eliminando righe con NaN in 'Coordinates' e creando una copia
+    #pulizia del DataFrame eliminando righe con NaN in 'Coordinates', creazione copia
     datapd_cleaned = datapd.dropna(subset=["Coordinates"]).copy()
 
-    # Conversione delle coordinate in liste di float (invertendo ordine lat/lon)
+    #conversione delle coordinate in liste di float (invertendo ordine lat/lon)
     datapd_cleaned["Coordinates"] = datapd_cleaned["Coordinates"].apply(
         lambda x: [float(coord.strip()) for coord in x.split(",")][::-1]  # Inverte l'ordine lat/lon
     )
 
-    # Calcolo del raggio usando la radice quadrata
+    #calcolo del raggio usando la radice quadrata
     datapd_cleaned["radius"] = datapd_cleaned["Total Number of Dead and Missing"].apply(
         lambda x: math.sqrt(x)
     )
 
     datapd_cleaned[["lng", "lat"]] = pd.DataFrame(datapd_cleaned["Coordinates"].tolist(), index=datapd_cleaned.index)
 
-    # Creazione del layer Pydeck
+    #creazione del layer Pydeck
     layer = pdk.Layer(
         "ScatterplotLayer",
         datapd_cleaned,
@@ -520,24 +520,24 @@ def points_map():
         opacity=1,
         stroked=True,
         filled=True,
-        radius_scale=1000,  # Amplifica il raggio calcolato
+        radius_scale=1000,  # amplifica il raggio calcolato
         radius_min_pixels=1.5,
         radius_max_pixels=1000,
         line_width_min_pixels=1,
-        get_position="Coordinates",  # L'ordine è ora corretto: [longitudine, latitudine]
+        get_position="Coordinates",  # ordine corretto: [longitudine, latitudine]
         get_radius="radius",
         get_fill_color=[204, 0, 0],
         get_line_color=[0, 0, 0],
         aggregation=pdk.types.String("SUM")
     )
 
-    # Configurazione della vista iniziale della mappa
+    #configurazione della vista iniziale della mappa
     view = pdk.data_utils.compute_view(datapd_cleaned[["lng", "lat"]])
-    view.zoom = 1  # Maggiore dettaglio
+    view.zoom = 1  #maggiore dettaglio
     view.latitude=30
     view.longitude=-8
 
-    # Configurazione della mappa Pydeck
+    #configurazione della mappa Pydeck
     map_deck = pdk.Deck(
     layers=[layer],
     initial_view_state=view,
@@ -546,8 +546,6 @@ def points_map():
     map_style=pdk.map_styles.SATELLITE #CARTO_DARK
     )
 
-
-    # Mostra la mappa nell'app Streamlit
     st.pydeck_chart(map_deck)
 
     return datapd_cleaned
@@ -555,17 +553,14 @@ def points_map():
 #2. Heatmap dei punti sulla base delle coordinate
 def heatmap(datapd_cleaned):
     st.write("### Heatmap delle regioni geografiche più colpite")
-    # Calcolo dei pesi (amplificati per una maggiore visibilità)
+    # calcolo dei pesi (amplificati per una maggiore visibilità)
     datapd_cleaned["weight"] = (
         datapd_cleaned["Total Number of Dead and Missing"] / datapd_cleaned["Total Number of Dead and Missing"].max()
-    ) * 100  # Fattore di scala per aumentare i pesi
+    ) * 100
 
-    # Dividi "Coordinates" in colonne separate per lat e lng
-    datapd_cleaned[["lng", "lat"]] = pd.DataFrame(datapd_cleaned["Coordinates"].tolist(), index=datapd_cleaned.index)
-
-    # Configura la vista iniziale della mappa
+    # configuro la vista iniziale della mappa
     view = pdk.data_utils.compute_view(datapd_cleaned[["lng", "lat"]])
-    view.zoom = 1.7  # Maggiore dettaglio
+    view.zoom = 1.7 
     view.latitude=30
     view.longitude=-43
 
@@ -597,8 +592,7 @@ def heatmap(datapd_cleaned):
     [15, 0, 15]      # Quasi nero
     ]
 
-    COLOR_BREWER_SCALE5 = [
-    #[255, 0, 0],       
+    COLOR_BREWER_SCALE5 = [       
     [230, 0, 0],     
     [204, 0, 0],     
     [179, 0, 0],     
@@ -615,16 +609,16 @@ def heatmap(datapd_cleaned):
         "HeatmapLayer",
         data=datapd_cleaned,
         opacity=0.9,
-        get_position=["lng", "lat"],  # Coordinate lat/lon
-        aggregation=pdk.types.String("SUM"),  # Aggregazione basata sulla somma
+        get_position=["lng", "lat"],  #coordinate lat/lon
+        aggregation=pdk.types.String("SUM"),  # aggregazione basata sulla somma
         color_range=COLOR_BREWER_SCALE5,  # scala di colori
-        threshold=0.07,  # Soglia abbassata per intensificare la visibilità
-        get_weight="weight",  # Peso per ogni punto
-        pickable=True, # Abilita il tooltip per ogni punto
+        threshold=0.07,  # soglia abbassata per intensificare la visibilità
+        get_weight="weight",  # peso per ogni punto
+        pickable=True, # abilita il tooltip per ogni punto (????)
         stroked = True  
     )
 
-    # Crea la mappa Pydeck
+    # crea la mappa Pydeck
     heatmap_map = pdk.Deck(
         layers=[heatmap_layer],
         initial_view_state=view,
@@ -633,14 +627,13 @@ def heatmap(datapd_cleaned):
         tooltip={"text": "Heatmap basata sui pesi calcolati"},
     )
 
-    # Mostra la mappa in Streamlit
     st.pydeck_chart(heatmap_map)
 
 #3. Mappa dei punti colorati per categoria
 def points_map_by_cat(datapd_cleaned):
     st.write("### Mappa dei punti colorati per categoria")
 
-    # Opzioni per la selezione della categoria
+    #opzioni per la selezione della categoria
     categories = ["Cause of Death", "Migrantion route"]
     selected_category = st.pills(
         "Seleziona una categoria per colorare i punti sulla mappa",
@@ -648,20 +641,15 @@ def points_map_by_cat(datapd_cleaned):
         default="Cause of Death"
     )
 
-    # Se l'utente non seleziona una categoria, mostra un avviso
+    # se l'utente non seleziona una categoria, mostra un avviso
     if not selected_category:
         st.warning("Seleziona una categoria per procedere.")
         return
-
-    # Controllo che la categoria esista nel dataset
-    if selected_category not in datapd_cleaned.columns:
-        st.error(f"La categoria '{selected_category}' non è disponibile nel dataset.")
-        return
-
-    # Rimuoviamo eventuali righe con NaN nella categoria selezionata
+    
+    # rimuoviamo eventuali righe con NaN nella categoria selezionata
     datapd_filtered = datapd_cleaned.dropna(subset=[selected_category]).copy()
 
-    # Mappatura dei colori univoci per la categoria selezionata
+    # mappatura dei colori univoci per la categoria selezionata
     unique_categories = datapd_filtered[selected_category].unique()
     color_palette = [
     [255, 0, 0],    # Rosso
@@ -691,7 +679,7 @@ def points_map_by_cat(datapd_cleaned):
     color_mapping = {category: color_palette[i % len(color_palette)] for i, category in enumerate(unique_categories)}
     datapd_filtered["color"] = datapd_filtered[selected_category].map(color_mapping)
 
-    # Creazione del layer Pydeck
+    # creazione del layer Pydeck
     layer = pdk.Layer(
         "ScatterplotLayer",
         datapd_filtered,
@@ -703,16 +691,16 @@ def points_map_by_cat(datapd_cleaned):
         radius_min_pixels=1.5,
         radius_max_pixels=1000,
         line_width_min_pixels=1,
-        get_position=["lng", "lat"],  # Usa direttamente lng e lat
+        get_position=["lng", "lat"],  #lng e lat
         get_radius="radius",
         get_fill_color="color",
         get_line_color=[0, 0, 0],
     )
 
-    # Configurazione della vista iniziale della mappa
+    # configurazione della vista iniziale della mappa
     view = pdk.ViewState(latitude=30, longitude=-8, zoom=1)
 
-    # Configurazione della mappa Pydeck
+    # configurazione della mappa Pydeck
     map_deck = pdk.Deck(
         layers=[layer],
         initial_view_state=view,
@@ -724,13 +712,13 @@ def points_map_by_cat(datapd_cleaned):
         map_style=pdk.map_styles.SATELLITE,
     )
 
-    # Mostra la mappa
+    # mostra la mappa
     st.pydeck_chart(map_deck)
 
-    # Aggiunta della legenda con i colori associati alle categorie
+    # aggiunta della legenda con i colori associati alle categorie
     st.write("#### Legenda dei colori")
 
-    # Creazione della legenda usando Markdown e HTML
+    # creazione della legenda usando Markdown e HTML
     legend_html = "<div style='display: flex; flex-wrap: wrap; gap: 10px;'>"
     for category, color in color_mapping.items():
         color_rgb = f"rgb({color[0]}, {color[1]}, {color[2]})"
@@ -742,7 +730,6 @@ def points_map_by_cat(datapd_cleaned):
         """
     legend_html += "</div>"
 
-    # Mostra la legenda in Streamlit
     st.markdown(legend_html, unsafe_allow_html=True)
 
 ## Implementazione Pagine ######################################################################################
@@ -775,7 +762,7 @@ def page_group_analysis():
     st.title("Analisi dei gruppi")
     st.write("sezione in fase di sviluppo.")
 
-# Configurazione della navigazione
+# configurazione navigazione
 pages = {
     "Introduzione": page_introduction,
     "Analisi descrittive": page_descriptive_analysis,
@@ -786,5 +773,5 @@ pages = {
 st.sidebar.title("Navigazione")
 selection = st.sidebar.radio("Vai a:", list(pages.keys()))
 
-# Esegue la pagina selezionata
+# esegue la pagina selezionata
 pages[selection]()
