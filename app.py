@@ -74,7 +74,7 @@ def dataframe():
 # ANALISI DESCRITTIVA DEI DATI
 #0. Mappa delle regioni del dataset
 def hex_to_rgb(hex_color):
-    """Converte un colore esadecimale in formato RGB."""
+    #Converte un colore esadecimale in formato RGB.
     hex_color = hex_color.lstrip('#')
     return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
@@ -483,7 +483,7 @@ def stackedbarchart():
         chart = alt.Chart(filtered_data).mark_bar().encode(
             y=alt.X('Region:N', title='Regione', sort=ordered_regions),
             x=alt.Y('Percent:Q', title='Percentuale', stack="normalize"),
-            color=alt.Color('Cause of Death:N', title='Causa di Morte'),
+            color=alt.Color('Cause of Death:N', title='Causa di Morte').scale(scheme='viridis'),
             #opacity=change_opacity,
             tooltip=[
                 alt.Tooltip('Region:N', title='Regione'),
@@ -508,7 +508,7 @@ def stackedbarchart():
 ###################################################################################################################################
 # ANALISI GEOSPAZIALE
 #1. Mappa dei punti sulla base delle coordinate
-def points_map():
+def points_map(map_style):
     st.write("### Mappa dei punti sulla base delle coordinate")
 
     #pulizia del DataFrame eliminando righe con NaN in 'Coordinates', creazione copia
@@ -557,7 +557,7 @@ def points_map():
     initial_view_state=view,
     tooltip={"html": "Totale di morti e dispersi: {Total Number of Dead and Missing}<br>Data della tragedia: {Incident Date}"},
     map_provider="mapbox",
-    map_style=pdk.map_styles.SATELLITE #CARTO_DARK
+    map_style=map_style
     )
 
     st.pydeck_chart(map_deck)
@@ -565,7 +565,7 @@ def points_map():
     return datapd_cleaned
 
 #2. Heatmap dei punti sulla base delle coordinate
-def heatmap(datapd_cleaned):
+def heatmap(datapd_cleaned, map_style):
     st.write("### Heatmap delle regioni geografiche più colpite")
     # calcolo dei pesi (amplificati per una maggiore visibilità)
     datapd_cleaned["weight"] = (
@@ -637,14 +637,14 @@ def heatmap(datapd_cleaned):
         layers=[heatmap_layer],
         initial_view_state=view,
         map_provider="mapbox",
-        map_style=pdk.map_styles.SATELLITE,
+        map_style=map_style,
         tooltip={"text": "Heatmap basata sui pesi calcolati"},
     )
 
     st.pydeck_chart(heatmap_map)
 
 #3. Mappa dei punti colorati per categoria
-def points_map_by_cat(datapd_cleaned):
+def points_map_by_cat(datapd_cleaned, map_style):
     st.write("### Mappa dei punti colorati per categoria")
 
     #opzioni per la selezione della categoria
@@ -723,7 +723,7 @@ def points_map_by_cat(datapd_cleaned):
             "style": {"color": "white"},
         },
         map_provider="mapbox",
-        map_style=pdk.map_styles.SATELLITE,
+        map_style=map_style
     )
 
     # mostra la mappa
@@ -768,9 +768,26 @@ def page_descriptive_analysis():
 
 def page_geo_analysis():
     st.title("Analisi geospaziali")
-    datapd_cleaned = points_map()
-    heatmap(datapd_cleaned)
-    points_map_by_cat(datapd_cleaned)
+    map_style_options = ["Mappa politica", "Mappa Satellitare"]
+    selected_map_style = st.pills(
+        "Seleziona il tipo di mappa",
+        map_style_options,
+        default="Mappa Satellitare"
+    )
+
+    # controllo se l'utente ha selezionato un'opzione
+    if not selected_map_style:
+        st.warning("Seleziona un tipo di mappa per visualizzarle.")
+        return
+    
+    if selected_map_style == "Mappa politica":
+        map_style = pdk.map_styles.CARTO_DARK
+    elif selected_map_style == "Mappa Satellitare":
+        map_style = pdk.map_styles.SATELLITE
+
+    datapd_cleaned = points_map(map_style)
+    heatmap(datapd_cleaned, map_style)
+    points_map_by_cat(datapd_cleaned, map_style)
 
 def page_group_analysis():
     st.title("Analisi dei gruppi")
