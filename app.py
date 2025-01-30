@@ -7,6 +7,8 @@ import datetime as dt
 import pydeck as pdk
 import math
 import matplotlib.pyplot as plt
+import io
+from scipy.spatial import ConvexHull
 
 st.set_page_config(
     page_title="Missing Migrants Project",
@@ -351,21 +353,6 @@ def piechart():
     altair_data = prepare_data_for_alt(datapd)
     total_deaths_order = altair_data.groupby("Region")["Total"].max().sort_values(ascending=False).index.tolist()
     
-    highlight = alt.selection_point(
-        name="highlight",
-        fields=["Region", "Category"], 
-        on="pointerover", 
-        nearest=True, 
-        empty="none",
-        clear="mouseout"
-        )
-    
-    change_stroke = alt.condition(
-        highlight,
-        alt.value(3),
-        alt.value(0.5)
-    )
-
     base_chart = alt.Chart(altair_data).transform_aggregate(
         total="sum(Count)", groupby=["Region", "Category", "Total"]
     )
@@ -375,10 +362,7 @@ def piechart():
             theta=alt.Theta("total:Q", stack=True),
             color=alt.Color("Category:N", scale=alt.Scale(scheme="category10"), title="Categoria"),
             tooltip=["Region:N", "Category:N", alt.Tooltip("total:Q", title="Numero")],
-            #strokeWidth=change_stroke
-        )#.add_params(
-        #     highlight
-        # )
+        )
     )
 
     text_pie = (
@@ -434,21 +418,6 @@ def stackedbarchart():
         default="None"
     )
 
-    #selection = alt.selection_point(
-    #    name="selection",
-    #    on="pointerover",
-    #    fields=['Region', 'Cause of Death'],
-    #    nearest=True,
-    #    empty="none",
-    #    clear="mouseout"
-    #    )
-    #
-    #change_opacity = alt.condition(
-    #    selection,
-    #    alt.value(1),
-    #    alt.value(0.4)
-    #)
-
     if not selected_cause:
         st.warning("Devi selezionare una causa di morte per procedere.")
         return  # Esce dalla funzione se la selezione è vuota
@@ -490,8 +459,6 @@ def stackedbarchart():
                 alt.Tooltip('Cause of Death:N', title='Causa di Morte'),
                 alt.Tooltip('Percent:Q', title='Percentuale', format='.2f')
             ]
-        ).add_params(
-            #selection
         ).properties(
             width=600,
             height=400,
@@ -550,6 +517,8 @@ def points_map(map_style):
     view.zoom = 1  #maggiore dettaglio
     view.latitude=30
     view.longitude=-8
+    view.max_zoom=8
+    view.min_zoom=0.7
 
     #configurazione della mappa Pydeck
     map_deck = pdk.Deck(
@@ -567,72 +536,48 @@ def points_map(map_style):
 #2. Heatmap dei punti sulla base delle coordinate
 def heatmap(datapd_cleaned, map_style):
     st.write("### Heatmap delle regioni geografiche più colpite")
-    # calcolo dei pesi (amplificati per una maggiore visibilità)
+    
+    # Calcolo dei pesi (amplificati per una maggiore visibilità)
     datapd_cleaned["weight"] = (
         datapd_cleaned["Total Number of Dead and Missing"] / datapd_cleaned["Total Number of Dead and Missing"].max()
     ) * 100
 
-    # configuro la vista iniziale della mappa
+    # Configuro la vista iniziale della mappa
     view = pdk.data_utils.compute_view(datapd_cleaned[["lng", "lat"]])
-    view.zoom = 1.7 
-    view.latitude=30
-    view.longitude=-43
+    view.zoom = 1.4 
+    view.latitude = 30
+    view.longitude = -43
+    view.max_zoom=8
+    view.min_zoom=0.7
 
-    COLOR_BREWER_SCALE2 = [
-    [255, 99, 71],    # Rosso leggermente più chiaro
-    [255, 69, 0],     # Rosso acceso
-    [220, 20, 60],    # Rosso scuro
-    [139, 0, 139],    # Viola intenso
-    [75, 0, 130],     # Viola super scuro (indaco)
-    [30, 0, 45],      # Colore molto scuro tendente al nero
+    # Definizione della scala di colori IDENTICA alla heatmap
+    COLOR_BREWER_SCALE5 = [
+        [230, 0, 0],     
+        [204, 0, 0],     
+        [179, 0, 0],     
+        [153, 0, 0],   
+        [128, 0, 0],
+        [102, 0, 0],
+        [77, 0, 0],
+        [51, 0, 0],
+        [26, 0, 0]
     ]
 
-    COLOR_BREWER_SCALE3 = [
-    [255, 102, 10],   # Arancione vivace
-    [255, 69, 0],     # Rosso chiaro intenso
-    [220, 20, 60],    # Rosso scuro
-    [139, 0, 139],    # Viola intenso
-    [75, 0, 130],     # Viola super scuro (indaco)
-    [30, 0, 45],      # Colore scurissimo tendente al nero
-    ]
-
-    COLOR_BREWER_SCALE4 = [
-    [220, 20, 60],   # Rosso scuro (Crimson)
-    [178, 34, 34],   # Rosso intenso (Firebrick)
-    [128, 0, 128],   # Viola puro (Purple)
-    [75, 0, 130],    # Indaco
-    [48, 25, 52],    # Viola molto scuro
-    [30, 0, 30],     # Quasi nero con una leggera tonalità violacea
-    [15, 0, 15]      # Quasi nero
-    ]
-
-    COLOR_BREWER_SCALE5 = [       
-    [230, 0, 0],     
-    [204, 0, 0],     
-    [179, 0, 0],     
-    [153, 0, 0],   
-    [128, 0, 0],
-    [102, 0, 0],
-    [77, 0, 0],
-    [51, 0, 0],
-    [26, 0, 0]
-    ]   
-
-    # configura il layer Heatmap
+    # Configura il layer Heatmap
     heatmap_layer = pdk.Layer(
         "HeatmapLayer",
         data=datapd_cleaned,
         opacity=0.9,
-        get_position=["lng", "lat"],  #coordinate lat/lon
-        aggregation=pdk.types.String("SUM"),  # aggregazione basata sulla somma
-        color_range=COLOR_BREWER_SCALE5,  # scala di colori
-        threshold=0.07,  # soglia abbassata per intensificare la visibilità
-        get_weight="weight",  # peso per ogni punto
-        pickable=True, # abilita il tooltip per ogni punto (????)
-        stroked = True  
+        get_position=["lng", "lat"],  # Coordinate lat/lon
+        aggregation=pdk.types.String("SUM"),  # Aggregazione basata sulla somma
+        color_range=COLOR_BREWER_SCALE5,  # Usa la lista di colori senza NumPy
+        threshold=0.07,  # Soglia abbassata per intensificare la visibilità
+        get_weight="weight",  # Peso per ogni punto
+        pickable=True,  # Abilita il tooltip per ogni punto
+        stroked=True  
     )
 
-    # crea la mappa Pydeck
+    # Crea la mappa Pydeck
     heatmap_map = pdk.Deck(
         layers=[heatmap_layer],
         initial_view_state=view,
@@ -641,7 +586,41 @@ def heatmap(datapd_cleaned, map_style):
         tooltip={"text": "Heatmap basata sui pesi calcolati"},
     )
 
-    st.pydeck_chart(heatmap_map)
+    # Layout con colonna per Heatmap + Colorbar a fianco
+    col1, col2 = st.columns([5, 1])  # Più spazio alla mappa
+
+    with col1:
+        st.pydeck_chart(heatmap_map, use_container_width=True)
+
+    with col2:
+        # **Creazione della colorbar**
+        fig, ax = plt.subplots(figsize=(0.6, 8))  # Aumentata altezza per allinearla alla mappa
+        cmap = plt.matplotlib.colors.LinearSegmentedColormap.from_list("custom_cmap", np.array(COLOR_BREWER_SCALE5) / 255)
+        norm = plt.Normalize(vmin=0, vmax=100)  # Normalizza tra 0 e 100
+
+        # Crea la barra dei colori
+        cb = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), cax=ax, orientation='vertical')
+        cb.set_label("Densità relativa di morti e dispersi", fontsize=10, labelpad=10, color="white")
+
+        # Imposta il colore del testo e dei numeri in bianco
+        cb.ax.yaxis.set_tick_params(color='white')
+        cb.ax.yaxis.label.set_color('white')
+        plt.setp(ax.yaxis.get_ticklabels(), color="white")
+
+        # **Rendi i bordi della colorbar bianchi**
+        cb.outline.set_edgecolor("white")
+
+        # **Allineamento della barra alla mappa**
+        ax.set_aspect(0.35)  # Proporzione verticale migliorata
+        plt.subplots_adjust(left=0.4, right=0.6, top=1, bottom=0)  # Rimuove spazio in eccesso
+
+        # Salva l'immagine in un buffer
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
+        buf.seek(0)
+        
+        # Mostra la colorbar in Streamlit
+        st.image(buf, use_container_width=True)
 
 #3. Mappa dei punti colorati per categoria
 def points_map_by_cat(datapd_cleaned, map_style):
@@ -712,7 +691,7 @@ def points_map_by_cat(datapd_cleaned, map_style):
     )
 
     # configurazione della vista iniziale della mappa
-    view = pdk.ViewState(latitude=30, longitude=-8, zoom=1)
+    view = pdk.ViewState(latitude=30, longitude=-8, zoom=1, max_zoom=8, min_zoom=0.7)
 
     # configurazione della mappa Pydeck
     map_deck = pdk.Deck(
@@ -746,6 +725,85 @@ def points_map_by_cat(datapd_cleaned, map_style):
 
     st.markdown(legend_html, unsafe_allow_html=True)
 
+################################################################################################################
+# ANALISI DEI GRUPPI
+#1. Gruppo del mediterraneo
+def mediterranean_group(map_style):
+    st.write("### Mappa dei punti nel Mediterraneo")
+
+    # Filtriamo il dataframe per la regione "Mediterranean"
+    datapd_med = datapd[datapd["Region"] == "Mediterranean"].dropna(subset=["Coordinates"]).copy()
+
+    # Conversione delle coordinate in liste di float e creazione di colonne separate per lat/lon
+    datapd_med["Coordinates"] = datapd_med["Coordinates"].apply(
+        lambda x: [float(coord.strip()) for coord in x.split(",")][::-1]  # Invertiamo l'ordine lat/lon
+    )
+
+    datapd_med["radius"] = datapd_med["Total Number of Dead and Missing"].apply(
+        lambda x: math.sqrt(x)
+    )
+
+    datapd_med[["lng", "lat"]] = pd.DataFrame(datapd_med["Coordinates"].tolist(), index=datapd_med.index)
+
+    # Creiamo un array numpy con tutte le coordinate aggiornate
+    points = np.array(datapd_med[["lng", "lat"]])
+
+    # Calcoliamo l'inviluppo convesso (convex hull)
+    hull = ConvexHull(points)
+    hull_coordinates = [points[i].tolist() for i in hull.vertices]
+
+    # Chiudiamo il poligono tornando al primo punto
+    hull_coordinates.append(hull_coordinates[0])
+
+    # Creiamo il layer con i punti
+    points_layer = pdk.Layer(
+        "ScatterplotLayer",
+        datapd_med,
+        pickable=True,
+        opacity=1,
+        stroked=True,
+        filled=True,
+        radius_scale=1000,  # Amplifica il raggio calcolato
+        radius_min_pixels=2,
+        radius_max_pixels=1000,
+        line_width_min_pixels=1,
+        get_position="Coordinates",
+        get_radius="radius",
+        get_fill_color=[204, 0, 0],
+        get_line_color=[0, 0, 0],
+    )
+
+    # Creiamo il layer con il poligono che racchiude i punti
+    polygon_data = [
+        {"polygon": hull_coordinates, "name": "Mediterranean Convex Hull"}
+    ]
+
+    polygon_layer = pdk.Layer(
+        "PolygonLayer",
+        polygon_data,
+        stroked=True,
+        filled=True,
+        line_width_min_pixels=2,
+        get_polygon="polygon",
+        get_fill_color=[255, 255, 255, 150],  # Bianco semi-trasparente
+        get_line_color=[255, 255, 255],  # Bordo bianco
+    )
+
+    # Configurazione della vista iniziale della mappa
+    view = pdk.ViewState(latitude=37, longitude=13.7, zoom=3.4, min_zoom=3.1, max_zoom=8)
+
+    # Creazione della mappa Pydeck con entrambi i layer
+    map_deck = pdk.Deck(
+        layers=[polygon_layer, points_layer],  # Sovrapposizione dei layer
+        initial_view_state=view,
+        tooltip={"html": "Morti e dispersi: {Total Number of Dead and Missing}<br>Data: {Incident Date}"},
+        map_provider="mapbox",
+        map_style=map_style
+    )
+
+    # Mostriamo la mappa
+    st.pydeck_chart(map_deck)
+
 ## Implementazione Pagine ######################################################################################
 def page_introduction():
     st.title(":red[Missing] Migrants Project")
@@ -757,7 +815,6 @@ def page_introduction():
     """)
     dataframe()
     
-
 def page_descriptive_analysis():
     st.title("Analisi Descrittive")
     regions_map()
@@ -768,7 +825,8 @@ def page_descriptive_analysis():
 
 def page_geo_analysis():
     st.title("Analisi geospaziali")
-    map_style_options = ["Mappa politica", "Mappa Satellitare"]
+    st.image("flussi migratori2.png", caption="Flussi migratori", use_container_width=True)
+    map_style_options = ["Mappa Politica", "Mappa Satellitare"]
     selected_map_style = st.pills(
         "Seleziona il tipo di mappa",
         map_style_options,
@@ -780,7 +838,7 @@ def page_geo_analysis():
         st.warning("Seleziona un tipo di mappa per visualizzarle.")
         return
     
-    if selected_map_style == "Mappa politica":
+    if selected_map_style == "Mappa Politica":
         map_style = pdk.map_styles.CARTO_DARK
     elif selected_map_style == "Mappa Satellitare":
         map_style = pdk.map_styles.SATELLITE
@@ -791,7 +849,24 @@ def page_geo_analysis():
 
 def page_group_analysis():
     st.title("Analisi dei gruppi")
-    st.write("sezione in fase di sviluppo.")
+    map_style_options = ["Mappa Politica", "Mappa Satellitare"]
+    selected_map_style = st.pills(
+        "Seleziona il tipo di mappa",
+        map_style_options,
+        default="Mappa Politica"
+    )
+
+    # controllo se l'utente ha selezionato un'opzione
+    if not selected_map_style:
+        st.warning("Seleziona un tipo di mappa per visualizzarle.")
+        return
+    
+    if selected_map_style == "Mappa Politica":
+        map_style = pdk.map_styles.CARTO_DARK
+    elif selected_map_style == "Mappa Satellitare":
+        map_style = pdk.map_styles.SATELLITE
+
+    mediterranean_group(map_style)
 
 # configurazione navigazione
 pages = {

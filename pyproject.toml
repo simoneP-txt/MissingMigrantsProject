@@ -12,5 +12,6 @@ dependencies = [
     "pandas>=2.2.3",
     "polars>=1.20.0",
     "pydeck>=0.9.1",
+    "scipy>=1.15.1",
     "streamlit>=1.41.1",
 ]
