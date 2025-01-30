@@ -627,7 +627,7 @@ def points_map_by_cat(datapd_cleaned, map_style):
     st.write("### Mappa dei punti colorati per categoria")
 
     #opzioni per la selezione della categoria
-    categories = ["Cause of Death", "Migrantion route"]
+    categories = ["Cause of Death", "Migrantion route", "Region"]
     selected_category = st.pills(
         "Seleziona una categoria per colorare i punti sulla mappa",
         options=categories,
@@ -804,6 +804,184 @@ def mediterranean_group(map_style):
     # Mostriamo la mappa
     st.pydeck_chart(map_deck)
 
+#2. Gruppo del confine tra Messico e Stati Uniti
+def mexico_us_border_group(map_style):
+    st.write("### Mappa dei punti sul confine tra Messico e Stati Uniti")
+
+    # Filtriamo il dataframe per le regioni North America e Central America
+    datapd_border = datapd[datapd["Region"].isin(["North America", "Central America"])].dropna(subset=["Coordinates"]).copy()
+
+    # Conversione delle coordinate in liste di float e creazione di colonne separate per lat/lon
+    datapd_border["Coordinates"] = datapd_border["Coordinates"].apply(
+        lambda x: [float(coord.strip()) for coord in x.split(",")][::-1]  # Invertiamo l'ordine lat/lon
+    )
+
+    datapd_border["radius"] = datapd_border["Total Number of Dead and Missing"].apply(
+        lambda x: math.sqrt(x)
+    )
+
+    datapd_border[["lng", "lat"]] = pd.DataFrame(datapd_border["Coordinates"].tolist(), index=datapd_border.index)
+
+    # **Filtriamo i punti per prendere solo quelli vicini al confine Messico-USA**
+    datapd_border = datapd_border[
+        (datapd_border["lat"] >= 25) & (datapd_border["lat"] <= 33) &  # Limiti di latitudine
+        (datapd_border["lng"] >= -118) & (datapd_border["lng"] <= -95)  # Limiti di longitudine
+    ]
+
+    # **Rettangolo 1: Rimuoviamo i punti nella Bassa California (Sud-Ovest)**
+    datapd_border = datapd_border[
+        ~((datapd_border["lat"] < 30) & (datapd_border["lng"] < -104))  # Sud-Ovest, Baja California
+    ]
+
+    # **Rettangolo 2: Rimuoviamo i punti interni sotto il confine**
+    datapd_border = datapd_border[
+        ~((datapd_border["lat"] < 29) & (datapd_border["lng"] > -110) & (datapd_border["lng"] < -105))  # Deserto Messicano
+    ]
+
+    datapd_border = datapd_border[
+    ~((datapd_border["lat"] > 25) & (datapd_border["lat"] < 29.5) & 
+      (datapd_border["lng"] > -107) & (datapd_border["lng"] < -102))
+    ]
+
+    # Creiamo un array numpy con tutte le coordinate aggiornate
+    points = np.array(datapd_border[["lng", "lat"]])
+
+    # Calcoliamo l'inviluppo convesso (convex hull)
+    hull = ConvexHull(points)
+    hull_coordinates = [points[i].tolist() for i in hull.vertices]
+
+    # Chiudiamo il poligono tornando al primo punto
+    hull_coordinates.append(hull_coordinates[0])
+
+    # Creiamo il layer con i punti
+    points_layer = pdk.Layer(
+        "ScatterplotLayer",
+        datapd_border,
+        pickable=True,
+        opacity=1,
+        stroked=True,
+        filled=True,
+        radius_scale=1000,  # Amplifica il raggio calcolato
+        radius_min_pixels=2,
+        radius_max_pixels=1000,
+        line_width_min_pixels=1,
+        get_position="Coordinates",
+        get_radius="radius",
+        get_fill_color=[204, 0, 0],  # Punti rossi
+        get_line_color=[0, 0, 0],
+    )
+
+    # Creiamo il layer con il poligono che racchiude i punti
+    polygon_data = [
+        {"polygon": hull_coordinates, "name": "Mexico-US Border Convex Hull"}
+    ]
+
+    polygon_layer = pdk.Layer(
+        "PolygonLayer",
+        polygon_data,
+        stroked=True,
+        filled=True,
+        line_width_min_pixels=2,
+        get_polygon="polygon",
+        get_fill_color=[255, 255, 255, 150],  # Bianco semi-trasparente
+        get_line_color=[255, 255, 255],  # Bordo bianco
+    )
+
+    # Configurazione della vista iniziale della mappa centrata sulla zona del confine
+    view = pdk.ViewState(latitude=29, longitude=-107, zoom=4.5, min_zoom=4.1,  max_zoom=8)
+
+    # Creazione della mappa Pydeck con entrambi i layer
+    map_deck = pdk.Deck(
+        layers=[polygon_layer, points_layer],  # Sovrapposizione dei layer
+        initial_view_state=view,
+        tooltip={"html": "Morti e dispersi: {Total Number of Dead and Missing}<br>Data: {Incident Date}"},
+        map_provider="mapbox",
+        map_style=map_style
+    )
+
+    # Mostriamo la mappa
+    st.pydeck_chart(map_deck)
+
+#3. Gruppo del deserto del Sahara
+def sahara_desert_group(map_style):
+    st.write("### Mappa dei punti nel Deserto del Sahara")
+
+    # Definizione del bounding box (rettangolo verde)
+    lat_min, lat_max = 12, 35  # Limiti di latitudine
+    lng_min, lng_max = -15, 40  # Limiti di longitudine
+
+    # Filtro per la rotta migratoria
+    datapd_sahara = datapd[datapd["Migrantion route"] == "Sahara Desert crossing"].dropna(subset=["Coordinates"]).copy()
+
+    # Parsing delle coordinate
+    def parse_coordinates(coord):
+        try:
+            lat, lng = map(float, coord.split(","))
+            return [lng, lat]  # Inversione corretta lat/lng
+        except (ValueError, AttributeError):
+            return None
+
+    datapd_sahara["Coordinates"] = datapd_sahara["Coordinates"].apply(parse_coordinates)
+    datapd_sahara = datapd_sahara.dropna(subset=["Coordinates"])
+
+    # Creazione colonne lng/lat
+    datapd_sahara[["lng", "lat"]] = pd.DataFrame(datapd_sahara["Coordinates"].tolist(), index=datapd_sahara.index)
+
+    # Filtro per il bounding box
+    datapd_sahara = datapd_sahara[
+        (datapd_sahara["lat"] >= lat_min) & (datapd_sahara["lat"] <= lat_max) &
+        (datapd_sahara["lng"] >= lng_min) & (datapd_sahara["lng"] <= lng_max)
+    ]
+
+    # Calcolo raggio
+    datapd_sahara["radius"] = datapd_sahara["Total Number of Dead and Missing"].apply(math.sqrt)
+
+    points = np.array(datapd_sahara[["lng", "lat"]])
+    hull = ConvexHull(points)
+    hull_coordinates = [points[i].tolist() for i in hull.vertices] + [points[hull.vertices[0]].tolist()]
+    
+    # Layer punti
+    points_layer = pdk.Layer(
+        "ScatterplotLayer",
+        datapd_sahara,
+        pickable=True,
+        opacity=1,
+        stroked=True,
+        filled=True,
+        radius_scale=1000,
+        radius_min_pixels=2,
+        radius_max_pixels=1000,
+        line_width_min_pixels=1,
+        get_position=["lng", "lat"],
+        get_radius="radius",
+        get_fill_color=[204, 0, 0],
+        get_line_color=[0, 0, 0],
+    )
+
+    # Layer poligono
+    polygon_layer = pdk.Layer(
+        "PolygonLayer",
+        [{"polygon": hull_coordinates}] if hull_coordinates else [],
+        stroked=True,
+        filled=True,
+        line_width_min_pixels=2,
+        get_polygon="polygon",
+        get_fill_color=[255, 255, 255, 150],
+        get_line_color=[255, 255, 255]
+    )
+
+    # Configurazione mappa
+    view = pdk.ViewState(latitude=24, longitude=13, zoom=3.2, max_zoom=8, min_zoom=3)
+    map_deck = pdk.Deck(
+        layers=[polygon_layer, points_layer],
+        initial_view_state=view,
+        tooltip={"html": "Morti e dispersi: {Total Number of Dead and Missing}<br>Data: {Incident Date}"},
+        map_provider="mapbox",
+        map_style=map_style
+    )
+
+    st.pydeck_chart(map_deck)
+
 ## Implementazione Pagine ######################################################################################
 def page_introduction():
     st.title(":red[Missing] Migrants Project")
@@ -867,6 +1045,8 @@ def page_group_analysis():
         map_style = pdk.map_styles.SATELLITE
 
     mediterranean_group(map_style)
+    mexico_us_border_group(map_style)
+    sahara_desert_group(map_style)
 
 # configurazione navigazione
 pages = {
