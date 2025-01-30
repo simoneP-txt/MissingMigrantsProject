@@ -6,9 +6,9 @@ import numpy as np
 import datetime as dt
 import pydeck as pdk
 import math
-import matplotlib.pyplot as plt
-import io
-from scipy.spatial import ConvexHull
+import matplotlib.pyplot as plt # utilizzata per la colorbar della heatmap
+import io                       # utilizzata per la colorbar della heatmap
+from scipy.spatial import ConvexHull # utilizzata per il poligono dei gruppi
 
 st.set_page_config(
     page_title="Missing Migrants Project",
@@ -168,20 +168,23 @@ def regions_map():
 def timeseries():
     st.write("### Serie storica del numero totale di morti e dispersi per regione")
     
+    # Conversione della data
     datapd['Incident_Date'] = pd.to_datetime(datapd['Incident Date'], format='%a, %m/%d/%Y', errors='coerce').dt.date
     datapd.dropna(subset=['Incident_Date'], inplace=True)
 
-    regions = data['Region'].unique().sort().to_list()
+    # Selezione delle regioni
+    regions = sorted(datapd['Region'].unique().tolist())
     selected_regions = st.multiselect(
         'Seleziona le regioni di interesse (max 4):',
         regions,
-        default="Mediterranean",
+        default=["Mediterranean"],
         key="region_selector",
         max_selections=4
     )
 
+    # Selezione dell'intervallo temporale
     start_date, end_date = st.slider(
-        'Seleziona l\'intervallo di tempo',
+        "Seleziona l'intervallo di tempo",
         min_value=dt.date(2014, 1, 1),
         max_value=dt.date(2021, 12, 31),
         value=(dt.date(2014, 1, 1), dt.date(2021, 12, 31)),
@@ -189,11 +192,13 @@ def timeseries():
         key="date_slider"
     )
 
+    # Filtraggio dei dati
     filtered_data = datapd[
-    (datapd['Region'].isin(selected_regions)) &
-    (datapd['Incident_Date'] >= start_date) &
-    (datapd['Incident_Date'] <= end_date)
+        (datapd['Region'].isin(selected_regions)) &
+        (datapd['Incident_Date'] >= start_date) &
+        (datapd['Incident_Date'] <= end_date)
     ].copy()
+
     if not filtered_data.empty:
         filtered_data["Incident_Date"] = pd.to_datetime(filtered_data["Incident_Date"], errors="coerce")
         filtered_data["Year_Month"] = filtered_data["Incident_Date"].dt.to_period("M")
@@ -204,10 +209,43 @@ def timeseries():
 
         aggregated_data["Year_Month"] = aggregated_data["Year_Month"].dt.to_timestamp()
 
-        nearest = alt.selection_point(
-            nearest=True, on="pointerover", fields=["Year_Month"], empty="none"
-        )
+        #{"date": "", "title": "", "link": "", "total_deaths": 0}
+        # Definizione degli eventi catastrofici
+        events = {
+            "Mediterranean": [
+                {"date": "2015-04-18", "title": "Naufragio nel Canale di Sicilia", 
+                 "link": "https://it.wikipedia.org/wiki/Naufragio_nel_Canale_di_Sicilia_del_18_aprile_2015",
+                 "total_deaths": 1022},
+                {"date": "2016-05-26", "title": "Naufragio nelle coste libiche",
+                 "link": "https://www.rainews.it/archivio-rainews/articoli/Migranti-le-vittime-sono-centinaia-Arrestati-a-Palermo-due-scafisti-ultimo-naufragio-7c900850-ea75-46e8-99ee-9d9db7357ee5.html",
+                 "total_deaths": 550},
+            ],
+            "South-eastern Asia": [
+                {"date": "2014-12-31", "title": "Fonte incerta", 
+                 "link": "https://www.nytimes.com/2014/12/31/world/asia/airasia-8501-jet-missing-indonesia.html", "total_deaths": 750}
+            ]
+        }
 
+        # Filtraggio degli eventi per le regioni selezionate
+        event_annotations = []
+        event_links = []
+        for region in selected_regions:
+            if region in events:
+                for event in events[region]:
+                    event_annotations.append({
+                        "Year_Month": pd.to_datetime(event["date"]),
+                        "Event": event["title"],
+                        "Total_Deaths": event["total_deaths"]  # Aggiunge il numero di morti e dispersi
+                    })
+                    event_links.append({
+                        "date": event["date"],
+                        "region": region,
+                        "title": event["title"],
+                        "total_deaths": event["total_deaths"],
+                        "link": event["link"]
+                    })
+
+        # Grafico della serie storica
         line = alt.Chart(aggregated_data).mark_line().encode(
             x=alt.X("Year_Month:T", title="Anno e Mese"),
             y=alt.Y("Total Number of Dead and Missing:Q", title="Somma mensile del numero totale di morti e dispersi"),
@@ -219,6 +257,10 @@ def timeseries():
             ]
         )
 
+        # Selettore per il tooltip interattivo
+        nearest = alt.selection_point(
+            nearest=True, on="pointerover", fields=["Year_Month"], empty="none"
+        )
         selectors = alt.Chart(aggregated_data).mark_point().encode(
             x="Year_Month:T",
             opacity=alt.value(0)
@@ -248,13 +290,29 @@ def timeseries():
             ]
         ).transform_filter(nearest)
 
-        timeseries = alt.layer(
-            line, selectors, points, rules, text
-        ).properties(
-            width=600, height=400
-        )
+        # Aggiunta delle linee verticali tratteggiate per eventi storici
+        if event_annotations:
+            event_df = pd.DataFrame(event_annotations)
+            event_rules = alt.Chart(event_df).mark_rule(strokeDash=[4, 4], color="darkgray", strokeWidth=2).encode(
+                x="Year_Month:T",
+                tooltip=[
+                    alt.Tooltip("Event:N", title="Evento"),
+                    alt.Tooltip("Year_Month:T", title="Data"),
+                    alt.Tooltip("Total_Deaths:Q", title="Morti e dispersi", format=".0f")
+                ]
+            )
+            timeseries = alt.layer(line, selectors, points, rules, text, event_rules).properties(width=600, height=400)
+        else:
+            timeseries = alt.layer(line, selectors, points, rules, text).properties(width=600, height=400)
 
         st.altair_chart(timeseries, use_container_width=True)
+
+        # Aggiunta del link agli eventi storici
+        if event_links:
+            st.markdown("### Fatti di cronaca nera correlati:")
+            for event in event_links:
+                st.markdown(f"📅 **{event['date']}** | 📍 **{event['region']}** |  **{event['total_deaths']} tra morti e dispersi** - [{event['title']}]({event['link']})"
+                            , unsafe_allow_html=True)
     else:
         st.warning("Nessuna regione selezionata.")
 
@@ -487,9 +545,6 @@ def stackedbarchart():
     else:
         st.warning("Nessuna regione selezionata.")
 
-#NON riesco ad implentare il fatto che la causa di morte selezionata sia la osservazione più a
-#sinistra del grafico
-
 ###################################################################################################################################
 # ANALISI GEOSPAZIALE
 #1. Mappa dei punti sulla base delle coordinate
@@ -688,7 +743,6 @@ def points_map_by_cat(datapd_cleaned, map_style):
     ]
  
     color_mapping = {category: color_palette[i % len(color_palette)] for i, category in enumerate(unique_categories)}
-    print(color_mapping)
     datapd_filtered["color"] = datapd_filtered[selected_category].map(color_mapping)
 
     # creazione del layer Pydeck
