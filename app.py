@@ -400,6 +400,20 @@ def stackedbarchart():
     datapd_counts = datapd.groupby(['Region', 'Cause of Death']).size().reset_index(name='Count')
     datapd_counts['Percent'] = datapd_counts.groupby('Region')['Count'].transform(lambda x: x / x.sum() * 100)
 
+    # Definizione della mappatura colore personalizzata per ogni causa di morte
+    color_mapping = {
+        "Drowning": "#392F5A",
+        "Vehicle accident / death linked to hazardous transport": "#FF8811",
+        "Violence": "#9DD9D2",
+        "Sickness / lack of access to adequate healthcare": "#FFF8F0",
+        "Harsh environmental conditions / lack of adequate shelter, food, water": "#f4d06f",
+        "Mixed or unknown": "#0F7968",
+        "Accidental death": "#664712"
+    }
+
+    # Creazione della scala dei colori basata sulla mappatura
+    color_scale = alt.Scale(domain=list(color_mapping.keys()), range=list(color_mapping.values()))
+
     # Selezione delle regioni (max 14)
     selected_regions = st.multiselect(
         'Seleziona le regioni da includere (max 14):',
@@ -426,7 +440,6 @@ def stackedbarchart():
         # Ordina solo se una causa di morte è selezionata
         if selected_cause != "None":
             # Aggiungi tutte le regioni con percentuale 0 per la causa selezionata
-            filtered_data = filtered_data.copy()
             all_regions = pd.DataFrame({
                 'Region': selected_regions,
                 'Cause of Death': selected_cause,
@@ -446,14 +459,18 @@ def stackedbarchart():
             filtered_data['Region'] = pd.Categorical(filtered_data['Region'], categories=ordered_regions, ordered=True)
         else:
             # Se "None", lascia l'ordine normale
-            ordered_regions = None
+            ordered_regions = filtered_data['Region'].unique().tolist()
 
-        # Creazione del grafico a barre impilate
+        # assegna un valore numerico per l'ordinamento della causa di morte
+        filtered_data = filtered_data.copy()  # evita il warning di pandas
+        filtered_data.loc[:, "sort_order"] = filtered_data["Cause of Death"].apply(lambda x: 0 if x == selected_cause else 1)
+
+        # Creazione del grafico a barre impilate con colori espliciti
         chart = alt.Chart(filtered_data).mark_bar().encode(
             y=alt.X('Region:N', title='Regione', sort=ordered_regions),
             x=alt.Y('Percent:Q', title='Percentuale', stack="normalize"),
-            color=alt.Color('Cause of Death:N', title='Causa di Morte').scale(scheme='viridis'),
-            #opacity=change_opacity,
+            color=alt.Color('Cause of Death:N', title='Causa di Morte', scale=color_scale),
+            order=alt.Order('sort_order:Q', sort='ascending'),
             tooltip=[
                 alt.Tooltip('Region:N', title='Regione'),
                 alt.Tooltip('Cause of Death:N', title='Causa di Morte'),
@@ -469,6 +486,7 @@ def stackedbarchart():
         st.altair_chart(chart, use_container_width=True)
     else:
         st.warning("Nessuna regione selezionata.")
+
 #NON riesco ad implentare il fatto che la causa di morte selezionata sia la osservazione più a
 #sinistra del grafico
 
@@ -627,7 +645,7 @@ def points_map_by_cat(datapd_cleaned, map_style):
     st.write("### Mappa dei punti colorati per categoria")
 
     #opzioni per la selezione della categoria
-    categories = ["Cause of Death", "Migrantion route", "Region"]
+    categories = ["Cause of Death", "Migrantion route"]
     selected_category = st.pills(
         "Seleziona una categoria per colorare i punti sulla mappa",
         options=categories,
@@ -647,13 +665,11 @@ def points_map_by_cat(datapd_cleaned, map_style):
     color_palette = [
     [255, 0, 0],    # Rosso
     [0, 255, 0],    # Verde
-    [0, 0, 255],    # Blu
     [255, 255, 0],  # Giallo
     [255, 0, 255],  # Magenta
     [0, 255, 255],  # Ciano
-    [128, 0, 0],    # Marrone scuro
-    [0, 128, 0],    # Verde scuro
-    [0, 0, 128],    # Blu scuro
+    [128, 0, 0],    # Rosso scuro
+    [139, 69, 19],  # Marrone cioccolato
     [128, 128, 0],  # Verde oliva
     [255, 165, 0],  # Arancione
     [75, 0, 130],   # Indaco
@@ -661,15 +677,18 @@ def points_map_by_cat(datapd_cleaned, map_style):
     [173, 216, 230],# Azzurro chiaro
     [32, 145, 134], # Turchese
     [255, 0, 221],  # Fucsia
-    [139, 69, 19],  # Marrone cioccolato
     [127, 255, 0],  # Verde lime
     [220, 20, 60],  # Cremisi
     [0, 206, 209],  # Turchese scuro
     [138, 43, 226], # Blu violetto
-    [255, 215, 0]   # Oro
+    [255, 215, 0],  # Oro
+    [0, 0, 255],    # Blu
+    [0, 0, 128],    # Blu scuro
+    [0, 128, 0],    # Verde scuro
     ]
  
     color_mapping = {category: color_palette[i % len(color_palette)] for i, category in enumerate(unique_categories)}
+    print(color_mapping)
     datapd_filtered["color"] = datapd_filtered[selected_category].map(color_mapping)
 
     # creazione del layer Pydeck
@@ -729,7 +748,7 @@ def points_map_by_cat(datapd_cleaned, map_style):
 # ANALISI DEI GRUPPI
 #1. Gruppo del mediterraneo
 def mediterranean_group(map_style):
-    st.write("### Mappa dei punti nel Mediterraneo")
+    st.write("### Gruppo dei punti nel Mediterraneo")
 
     # Filtriamo il dataframe per la regione "Mediterranean"
     datapd_med = datapd[datapd["Region"] == "Mediterranean"].dropna(subset=["Coordinates"]).copy()
@@ -806,7 +825,7 @@ def mediterranean_group(map_style):
 
 #2. Gruppo del confine tra Messico e Stati Uniti
 def mexico_us_border_group(map_style):
-    st.write("### Mappa dei punti sul confine tra Messico e Stati Uniti")
+    st.write("### Gruppo dei punti sul confine tra Messico e Stati Uniti")
 
     # Filtriamo il dataframe per le regioni North America e Central America
     datapd_border = datapd[datapd["Region"].isin(["North America", "Central America"])].dropna(subset=["Coordinates"]).copy()
@@ -833,14 +852,14 @@ def mexico_us_border_group(map_style):
         ~((datapd_border["lat"] < 30) & (datapd_border["lng"] < -104))  # Sud-Ovest, Baja California
     ]
 
-    # **Rettangolo 2: Rimuoviamo i punti interni sotto il confine**
     datapd_border = datapd_border[
-        ~((datapd_border["lat"] < 29) & (datapd_border["lng"] > -110) & (datapd_border["lng"] < -105))  # Deserto Messicano
+    ~((datapd_border["lat"] > 25) & (datapd_border["lat"] < 29) & 
+      (datapd_border["lng"] > -107) & (datapd_border["lng"] < -102))
     ]
 
     datapd_border = datapd_border[
-    ~((datapd_border["lat"] > 25) & (datapd_border["lat"] < 29.5) & 
-      (datapd_border["lng"] > -107) & (datapd_border["lng"] < -102))
+    ~((datapd_border["lat"] > 24) & (datapd_border["lat"] < 27) & 
+      (datapd_border["lng"] > -101.5) & (datapd_border["lng"] < -99))
     ]
 
     # Creiamo un array numpy con tutte le coordinate aggiornate
@@ -904,7 +923,7 @@ def mexico_us_border_group(map_style):
 
 #3. Gruppo del deserto del Sahara
 def sahara_desert_group(map_style):
-    st.write("### Mappa dei punti nel Deserto del Sahara")
+    st.write("### Gruppo dei punti nel Deserto del Sahara")
 
     # Definizione del bounding box (rettangolo verde)
     lat_min, lat_max = 12, 35  # Limiti di latitudine
