@@ -5,9 +5,9 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import pydeck as pdk
-import math
+import math #da aggiungere a uv
 import matplotlib.pyplot as plt # utilizzata per la colorbar della heatmap
-import io                       # utilizzata per la colorbar della heatmap
+import io   #da aggiungere a uv # utilizzata per la colorbar della heatmap
 from scipy.spatial import ConvexHull # utilizzata per il poligono dei gruppi
 from pathlib import Path
 
@@ -142,6 +142,12 @@ def hex_to_rgb(hex_color):
 def regions_map():
     st.write("### Mappa delle Regioni")
 
+    st.markdown(
+        "Questa mappa mostra la suddivisione delle regioni nel dataset, "
+        "consentendo di visualizzare le aree geografiche di riferimento. "
+        "Successivamente nell'applicazione sarà possibile selezionare specifiche regioni per un'analisi più dettagliata."
+    )
+
     # Carico il dataset aggiornato
     file_path = "countries.csv"
     df_countries = pd.read_csv(file_path)
@@ -225,7 +231,22 @@ def regions_map():
 
 #1. Serie storica del numero totale di morti e dispersi per regione
 def timeseries():
-    st.write("### Serie storica del numero totale di morti e dispersi per regione")
+    st.write(
+        ""
+        )
+    st.write(
+        "L'obiettivo di questa sezione è comprendere come il numero totale di morti e dispersi sia variato nel tempo "
+        "nelle diverse regioni. Attraverso questa visualizzazione, è possibile individuare tendenze, variazioni significative "
+        "e potenziali anomalie nei dati raccolti.")
+
+    st.write("## Serie storica del numero totale di morti e dispersi per regione")
+    
+    st.markdown(
+    "L'interfaccia consente di **selezionare una o più regioni** da analizzare e di **definire un intervallo temporale** "
+    "per restringere il focus della visualizzazione. Tuttavia, si consiglia di **mantenere il Mediterraneo come unica selezione** "
+    "per evitare la sovrapposizione di dati con scale molto diverse tra loro. Inoltre, si segnala che la regione **Central Asia** "
+    "contiene una sola osservazione, risultando pertanto in un singolo punto all'interno del grafico."
+    )
     
     # Conversione della data
     datapd['Incident_Date'] = pd.to_datetime(datapd['Incident Date'], format='%a, %m/%d/%Y', errors='coerce').dt.date
@@ -1146,7 +1167,7 @@ def page_descriptive_analysis():
         "In questa sezione si propone un'analisi descrittiva delle variabili presenti nel dataset, "
         "con l'obiettivo di fornire una panoramica generale sulla loro distribuzione e sulle caratteristiche principali dei dati raccolti."
     )
-    
+
     regions_map()
     timeseries()
     barchart()
