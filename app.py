@@ -1034,6 +1034,12 @@ def mediterranean_group(map_style):
     st.markdown("---")
     st.write("### Gruppo dei punti nel Mediterraneo")
 
+    st.markdown("""
+    Come abbiamo già ampiamente affrontato nelle analisi precedenti, il Mediterraneo rappresenta una delle rotte migratorie più pericolose al mondo, 
+    con un elevato numero di incidenti che coinvolgono migranti in fuga da conflitti, persecuzioni e crisi economiche. 
+    La mappa seguente evidenzia la distribuzione degli eventi in questa regione, concentrati principalmente nel Mediterraneo centrale e orientale.
+    """)
+
     # Filtriamo il dataframe per la regione "Mediterranean"
     datapd_med = datapd[datapd["Region"] == "Mediterranean"].dropna(subset=["Coordinates"]).copy()
 
@@ -1107,10 +1113,31 @@ def mediterranean_group(map_style):
     # Mostriamo la mappa
     st.pydeck_chart(map_deck)
 
+    st.markdown("""
+    Il cluster del Mediterraneo mostra una netta concentrazione di eventi tra le coste della Libia e dell'Italia, 
+    oltre che lungo la rotta che attraversa il Mar Egeo verso la Grecia. La maggior parte degli incidenti sono naufragi, 
+    spesso dovuti a imbarcazioni sovraccariche e condizioni meteorologiche avverse. 
+
+    L’**annegamento** rappresenta la principale causa di morte, con numerosi episodi segnalati da ONG e autorità marittime. 
+    Le politiche di gestione della migrazione nell'Unione Europea hanno avuto un impatto significativo sulla frequenza e la distribuzione di questi eventi: 
+    ad esempio, operazioni di soccorso come **Mare Nostrum**, **Triton** e **Sophia** hanno influenzato il numero di vittime nel corso degli anni. 
+    Tuttavia, la riduzione degli interventi umanitari ha contribuito a un aumento della pericolosità della traversata.
+
+    La presenza di reti di trafficanti, che sfruttano la disperazione dei migranti per organizzare viaggi su imbarcazioni precarie, 
+    costituisce un ulteriore fattore di rischio. Questi elementi rendono il Mediterraneo un'area di grande interesse per le analisi migratorie e 
+    per le politiche di prevenzione delle tragedie in mare.
+    """)
+
 #2. Gruppo del confine tra Messico e Stati Uniti
 def mexico_us_border_group(map_style):
     st.markdown("---")
     st.write("### Gruppo dei punti sul confine tra Messico e Stati Uniti")
+
+    st.markdown("""
+    Dopo aver analizzato la situazione nel Mediterraneo, ci spostiamo ora in America, lungo il confine tra Messico e Stati Uniti, 
+    uno dei punti più critici per la migrazione globale. La mappa seguente mostra la distribuzione spaziale degli incidenti in questa regione, 
+    con una forte concentrazione di eventi nelle zone desertiche dell’Arizona, del Texas e della California.
+    """)
 
     # Filtriamo il dataframe per le regioni North America e Central America
     datapd_border = datapd[datapd["Region"].isin(["North America", "Central America"])].dropna(subset=["Coordinates"]).copy()
@@ -1206,10 +1233,29 @@ def mexico_us_border_group(map_style):
     # Mostriamo la mappa
     st.pydeck_chart(map_deck)
 
+    st.markdown("""
+    L’analisi del cluster rivela come la maggior parte degli incidenti avvenga lungo i tratti di confine più difficili da attraversare, 
+    spesso lontani dai valichi ufficiali. I migranti, spinti dalla necessità di evitare controlli e pattugliamenti, scelgono percorsi più remoti e pericolosi, 
+    affrontando lunghi tragitti a piedi attraverso il deserto.
+
+    Le principali cause di morte registrate sono **disidratazione, esaurimento fisico e ipotermia**, a causa delle condizioni climatiche estreme. 
+    Inoltre, incidenti legati al traffico illecito di persone e agli scontri con le forze dell’ordine o i cartelli criminali rappresentano un ulteriore fattore di rischio. 
+
+    Le politiche di sicurezza statunitensi, come la costruzione del **muro di confine** e l’aumento dei controlli da parte della Border Patrol, 
+    hanno contribuito a deviare le rotte migratorie verso aree sempre più ostili, aumentando il tasso di mortalità. 
+    L’analisi di questo cluster fornisce dunque una chiara evidenza dell'impatto delle strategie di gestione della frontiera sulla sicurezza e sulla vulnerabilità dei migranti.
+    """)
+
 #3. Gruppo del deserto del Sahara
 def sahara_desert_group(map_style):
     st.markdown("---")
     st.write("### Gruppo dei punti nel Deserto del Sahara")
+
+    st.markdown("""
+    Dopo aver esaminato le rotte migratorie nel Mediterraneo e al confine tra Messico e Stati Uniti, ci spostiamo ora in Africa, 
+    nel **Deserto del Sahara**, un’area estremamente ostile che rappresenta una delle rotte più pericolose per i migranti diretti verso il Nord Africa e l’Europa. 
+    La mappa seguente evidenzia la distribuzione degli incidenti lungo questa tratta, con una concentrazione di eventi nelle aree desertiche tra Niger, Chad, Sudan e Libia.
+    """)
 
     # Definizione del bounding box (rettangolo verde)
     lat_min, lat_max = 12, 35  # Limiti di latitudine
@@ -1286,6 +1332,19 @@ def sahara_desert_group(map_style):
     )
 
     st.pydeck_chart(map_deck)
+
+    st.markdown("""
+    Il cluster del Sahara evidenzia la pericolosità estrema della traversata, con un elevato numero di incidenti distribuiti lungo le principali rotte che collegano 
+    l’Africa subsahariana alla Libia e all’Algeria. A differenza delle altre due aree analizzate, qui i migranti affrontano lunghi tragitti a piedi o su mezzi di trasporto precari, 
+    come camion sovraccarichi, con scarse possibilità di ricevere soccorso in caso di emergenza.
+
+    Le principali cause di morte sono **disidratazione, fame ed esposizione prolungata alle condizioni climatiche estreme**. 
+    Inoltre, la presenza di gruppi criminali e milizie armate lungo il percorso aumenta il rischio di violenze, rapimenti e tratta di esseri umani. 
+
+    La mancanza di infrastrutture e di punti di rifornimento rende il deserto un’area particolarmente letale, con numerosi migranti che scompaiono senza lasciare traccia. 
+    Questa analisi mette in evidenza la necessità di una maggiore attenzione internazionale sulle condizioni dei migranti in transito attraverso il Sahara, 
+    un’area spesso trascurata nel dibattito sulle crisi migratorie globali.
+    """)
 
 ## Implementazione Pagine ######################################################################################
 def page_introduction():
@@ -1384,6 +1443,20 @@ def page_geo_analysis():
 
 def page_group_analysis():
     st.title("Analisi dei gruppi")
+
+    st.markdown("""
+    Questa sezione analizza i principali **gruppi** geografici di incidenti migratori registrati nel dataset. 
+    L'analisi è suddivisa in tre aree chiave: il **Mediterraneo**, il **confine tra Messico e Stati Uniti** e il **deserto del Sahara**. 
+    Ognuna di queste regioni è caratterizzata da dinamiche migratorie specifiche, che influenzano la distribuzione e la gravità degli eventi segnalati.
+
+    L'obiettivo di questa analisi è identificare le tendenze nei dati e comprendere i fattori che contribuiscono alla pericolosità di queste rotte. 
+    
+    Le mappe interattive seguenti mostrano la distribuzione degli incidenti all'interno di ciascun cluster, fornendo un quadro chiaro delle zone più colpite e delle principali modalità di rischio associate a ciascuna area.
+    
+    Anche in questa sezione è possibile personalizzare la visualizzazione selezionando la tipologia di mappa preferita, 
+    scegliendo tra una mappa politica e una mappa satellitare.
+    """)
+
     map_style_options = ["Mappa Politica", "Mappa Satellitare"]
     selected_map_style = st.pills(
         "Seleziona il tipo di mappa",
@@ -1404,13 +1477,93 @@ def page_group_analysis():
     mediterranean_group(map_style)
     mexico_us_border_group(map_style)
     sahara_desert_group(map_style)
+    st.markdown("---")
+
+    st.write("## Conclusioni Finali")
+
+    st.markdown("""
+    ## L'Indifferenza verso una Tragedia Globale
+
+    L'analisi presentata in questo progetto ha permesso di esplorare la crisi migratoria attraverso diverse prospettive: 
+    dalle analisi descrittive e geospaziali fino allo studio approfondito dei principali gruppi geografici di incidenti. 
+    Ogni sezione ha rivelato una verità inconfutabile: la migrazione forzata è una delle emergenze umanitarie più gravi del nostro tempo, 
+    eppure continua a essere affrontata con un livello di indifferenza sconcertante.
+
+    ---
+    
+    ### 📌 Una crisi invisibile ai nostri occhi
+    
+    Dati alla mano, abbiamo osservato come migliaia di persone muoiano ogni anno nel tentativo di attraversare mari, deserti e confini militarizzati.  
+    Abbiamo analizzato i punti critici di questa crisi:
+
+    - **Mediterraneo** → Una traversata su imbarcazioni di fortuna che spesso si trasforma in una condanna a morte.  
+    - **Confine tra Messico e Stati Uniti** → Un deserto letale e politiche di deterrenza che aumentano il numero di vittime.  
+    - **Deserto del Sahara** → Una delle rotte più letali e meno documentate, dove migliaia di persone scompaiono senza lasciare traccia.  
+
+    Tuttavia, ciò che emerge con ancora più forza da questa analisi non è solo la brutalità delle condizioni affrontate dai migranti, 
+    ma la sistematica **mancanza di attenzione** da parte delle istituzioni e della società civile.  
+
+    ---
+    
+    ### ⚠️ Una tragedia che nessuno vuole vedere
+
+    Ogni tragedia viene rapidamente archiviata come un fatto inevitabile, un evento marginale che non merita più di qualche titolo di giornale.  
+    I governi, invece di affrontare le **cause profonde delle migrazioni** – guerre, povertà, crisi climatiche e persecuzioni – 
+    investono risorse enormi nella costruzione di muri, nell’esternalizzazione delle frontiere e nel pattugliamento dei mari.  
+    Queste strategie, **anziché risolvere il problema, lo aggravano**, rendendo la migrazione ancora più pericolosa e aumentando il numero di vittime.
+
+    Ma la responsabilità non ricade solo sui governi.  
+    **Anche noi, come cittadini, siamo complici di questa indifferenza.**  
+
+    Continuiamo a vedere le migrazioni attraverso una lente distorta, come un problema da gestire e non come una crisi umanitaria da risolvere.  
+    Le vite perse in mare o nel deserto diventano **numeri**, statistiche che ci scorrono davanti senza suscitare una reazione concreta.  
+
+    ---
+    
+    ### 🔥 Scegliere di non voltarsi dall'altra parte
+
+    Se c’è una lezione che questo progetto ci lascia, è che **ignorare questa tragedia significa accettarla**.  
+    Accettare che persone muoiano per il semplice fatto di cercare un’esistenza migliore.  
+    Accettare che l’umanità sia divisa tra chi ha il diritto di muoversi liberamente e chi invece può solo rischiare la vita per farlo.  
+    Accettare che il destino di migliaia di uomini, donne e bambini venga deciso da politiche che vedono nei migranti un problema e non delle vite da proteggere.  
+
+    Ma nulla di tutto questo è inevitabile.  
+    I dati, le mappe e le analisi contenute in questo lavoro non sono solo strumenti di comprensione, 
+    ma devono diventare **strumenti di consapevolezza e responsabilità**.  
+
+    - Dobbiamo pretendere che la migrazione venga trattata per ciò che è: **una questione di diritti umani, non di sicurezza**.  
+    - Dobbiamo riconoscere che dietro ogni punto su una mappa c’è **una vita spezzata, un nome, una storia**.  
+    - Dobbiamo scegliere di **non voltarci dall’altra parte**.  
+
+    ---
+    
+    ### ❌ Il vero fallimento? La nostra indifferenza.
+
+    Perché il vero fallimento non è nei numeri di questo dataset,  
+    **ma nella nostra incapacità di indignarci e di agire di fronte a essi.**  
+    """)
+
+    st.markdown("---")
+    st.subheader("Autore e Contatti")
+
+    st.markdown("""
+    Questa applicazione web è stata creata da **Simone Paoletti**.  
+    Per suggerimenti, segnalazioni di errori o per discutere del progetto, puoi contattarmi ai seguenti riferimenti:
+    
+    - 📧 **Email:** [simonepaoletti17@gmail.com](mailto:simonepaoletti17@gmail.com)
+    - 🔗 **GitHub:** [github.com/simoneP-txt](https://github.com/simoneP-txt/)
+    - 🔗 **LinkedIn:** [linkedin.com/in/simone-paoletti-011792328](https://www.linkedin.com/in/simone-paoletti-011792328/)
+
+    Ogni feedback è ben accetto e utile per migliorare ulteriormente questo lavoro.
+    """)
+
 
 # configurazione navigazione
 pages = {
     "Introduzione": page_introduction,
     "Analisi descrittive": page_descriptive_analysis,
     "Analisi geospaziali": page_geo_analysis,
-    "Analisi dei gruppi": page_group_analysis
+    "Analisi dei gruppi e conclusioni": page_group_analysis
 }
 
 st.sidebar.title("Navigazione")
