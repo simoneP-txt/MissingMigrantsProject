@@ -5,9 +5,9 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import pydeck as pdk
-import math #da aggiungere a uv
+import math 
 import matplotlib.pyplot as plt # utilizzata per la colorbar della heatmap
-import io   #da aggiungere a uv # utilizzata per la colorbar della heatmap
+import io                        # utilizzata per la colorbar della heatmap
 from scipy.spatial import ConvexHull # utilizzata per il poligono dei gruppi
 from pathlib import Path
 
@@ -56,7 +56,7 @@ def migration_tragedies():
     st.markdown("""
     Spostandoci in Centro America, troviamo un altro caso che ha suscitato profonda indignazione e ha reso evidente la pericolosità delle migrazioni forzate.  
     
-    Óscar Alberto Martínez Ramírez e sua figlia Valeria sono morti mentre cercavano di attraversare il Rio Grande, la loro morte catturata da un'immagine orribile e inquietante che ha suscitato indignazione.  
+    Óscar Alberto Martínez Ramírez e sua figlia Valeria sono morti mentre cercavano di attraversare il Rio Grande, la loro morte catturata da un'immagine orribile e inquietante.
     
     Padre e figlia giacciono a faccia in giù nell'acqua sulla riva del Rio Grande a Matamoros, in Messico, Valeria infilata nella maglietta di suo padre con il suo piccolo braccio avvolto attorno al suo collo.  
     """)
@@ -140,7 +140,7 @@ def hex_to_rgb(hex_color):
     return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
 def regions_map():
-    st.write("### Mappa delle Regioni")
+    st.write("## Mappa delle Regioni")
 
     st.markdown(
         "Questa mappa mostra la suddivisione delle regioni nel dataset, "
@@ -231,9 +231,7 @@ def regions_map():
 
 #1. Serie storica del numero totale di morti e dispersi per regione
 def timeseries():
-    st.write(
-        ""
-        )
+    st.markdown("---")
     st.write(
         "L'obiettivo di questa sezione è comprendere come il numero totale di morti e dispersi sia variato nel tempo "
         "nelle diverse regioni. Attraverso questa visualizzazione, è possibile individuare tendenze, variazioni significative "
@@ -312,18 +310,20 @@ def timeseries():
         for region in selected_regions:
             if region in events:
                 for event in events[region]:
-                    event_annotations.append({
-                        "Year_Month": pd.to_datetime(event["date"]),
-                        "Event": event["title"],
-                        "Total_Deaths": event["total_deaths"]  # Aggiunge il numero di morti e dispersi
-                    })
-                    event_links.append({
-                        "date": event["date"],
-                        "region": region,
-                        "title": event["title"],
-                        "total_deaths": event["total_deaths"],
-                        "link": event["link"]
-                    })
+                    event_date = pd.to_datetime(event["date"])
+                    if start_date <= event_date.date() <= end_date:
+                        event_annotations.append({
+                            "Year_Month": event_date,
+                            "Event": event["title"],
+                            "Total_Deaths": event["total_deaths"]  
+                        })
+                        event_links.append({
+                            "date": event["date"],
+                            "region": region,
+                            "title": event["title"],
+                            "total_deaths": event["total_deaths"],
+                            "link": event["link"]
+                        })
 
         # Grafico della serie storica
         line = alt.Chart(aggregated_data).mark_line().encode(
@@ -389,16 +389,33 @@ def timeseries():
 
         # Aggiunta del link agli eventi storici
         if event_links:
-            st.markdown("### Fatti di cronaca nera correlati:")
+            st.markdown("#### Fatti di cronaca nera correlati:")
             for event in event_links:
                 st.markdown(f"📅 **{event['date']}** | 📍 **{event['region']}** |  **{event['total_deaths']} tra morti e dispersi** - [{event['title']}]({event['link']})"
                             , unsafe_allow_html=True)
     else:
         st.warning("Nessuna regione selezionata.")
 
+    st.markdown(
+    "Dall'analisi dei dati emerge chiaramente come le regioni del **Mediterraneo, del Nord America e del Nord Africa** "
+    "rappresentino le aree con il più alto numero di morti e dispersi. Queste zone si configurano come i principali epicentri "
+    "della crisi migratoria, caratterizzandosi per condizioni di viaggio estremamente pericolose e per un elevato numero di incidenti mortali. "
+    "Come verrà approfondito nelle sezioni successive, il **Mediterraneo** continua a essere una delle rotte più letali per i migranti, "
+    "mentre il confine tra **Messico e Stati Uniti**, così come il **Nord Africa**, si distinguono per la numerosità di volte che appaiono nel dataset, "
+    "come vedremo anche successivamente."
+)
+
 #2. Distribuzione delle variabili categoriche
 def barchart():
-    st.write("### Distribuzione delle variabili categoriche")
+    st.markdown("---")
+    st.write("## Distribuzione delle variabili categoriche")
+
+    st.markdown(
+    "Questa sezione permette di analizzare la distribuzione delle variabili categoriali presenti nel dataset, "
+    "offrendo una panoramica sulla frequenza. "
+    "Ciò consente di individuare quali regioni, cause di morte o rotte migratorie siano maggiormente rappresentate nei dati."
+    )
+
     columns = ['Region', 'Cause of Death', 'Migrantion route']
 
     selected_variable = st.pills(
@@ -463,9 +480,32 @@ def barchart():
 
     st.altair_chart(histogram, use_container_width=True)
 
+    st.markdown(
+    "Analizzando la distribuzione delle osservazioni in base alla **regione** e alla **rotta migratoria**, si nota che "
+    "le categorie più frequenti sono rispettivamente **North America** e il **confine tra Stati Uniti e Messico**. "
+    "Tuttavia, come verrà evidenziato nelle analisi successive, il **Mediterraneo** registra un numero significativamente "
+    "più alto di morti e dispersi totali. Questo potrebbe indicare che, nel caso del **Nord America**, si tratta perlopiù "
+    "di un'elevata quantità di **registrazioni di casi isolati e di persone singole**, mentre nel Mediterraneo gli incidenti "
+    "coinvolgono un numero molto più elevato di vittime per singolo evento. \n\n"
+    
+    "Per quanto riguarda la **causa di morte**, non sorprende che la categoria più frequente sia **Mixed or unknown**. "
+    "Molto spesso, infatti, i corpi delle vittime vengono rinvenuti quando l'evento si è già verificato, rendendo difficile "
+    "determinare con precisione le circostanze della morte. In molti altri casi, invece, i corpi non vengono recuperati affatto, "
+    "lasciando l'esatta causa del decesso sconosciuta."
+    )
+
 #3. Distribuzione assoluta delle vittime per regione
 def piechart():
-    st.write("### Distribuzione assoluta delle vittime per regione")
+    st.markdown("---")
+    st.write("## Distribuzione assoluta delle vittime per regione")
+
+    st.markdown(
+    "Questo grafico rappresenta la distribuzione del numero di vittime per ciascuna regione, suddivise in quattro categorie: "
+    "**uomini, donne, minori di 18 anni e individui di genere sconosciuto**. "
+    "Al centro di ogni diagramma è riportato il numero totale di morti e dispersi per quella specifica area geografica. "
+    "Le regioni sono ordinate in modo decrescente in base al numero complessivo di vittime, permettendo così di evidenziare "
+    "le aree maggiormente colpite dal fenomeno."
+    )
 
     def prepare_data_for_alt(df):
         regions = df['Region'].unique()
@@ -504,35 +544,64 @@ def piechart():
     )
 
     text_pie = (
-        base_chart.mark_text(radius=100, size=14).encode(
-            theta=alt.Theta("total:Q", stack=True),
-            text=alt.Text("total:Q", format=".0f"),
-            color=alt.value("white")
-        )
+       base_chart.mark_text(size=12, color="white").encode(
+           theta=alt.Theta("total:Q", stack=True),
+           text=alt.Text("total:Q", format=".0f"),
+           radius=alt.value(65),  # sposta le etichette
+
+       )
     )
 
     text_total = (
-        base_chart.mark_text(size=20, fontWeight="bold").encode(
+        base_chart.mark_text(size=18, fontWeight="bold").encode(
             text=alt.Text("Total:Q", format=".0f"),
             color=alt.value("white")
         ).transform_filter(alt.datum.Category == "Male")
     )
 
     chart = (
-            base_pie + text_pie + text_total
-        ).properties(
-            width=150,
-            height=150
-        ).facet(
-            facet=alt.Facet("Region:N", title="Regione", sort=total_deaths_order),
-            columns=4
-        )
+        base_pie  + text_total
+    ).properties(
+        width=150,
+        height=150
+    ).facet(
+        facet=alt.Facet("Region:N", title="Regione", sort=total_deaths_order),
+        columns=4
+    )
 
     st.altair_chart(chart, use_container_width=True)
 
+    st.markdown(
+    "Dal grafico emerge in modo evidente l'enorme numero di vittime registrate nel **Mediterraneo**, che rappresenta la regione "
+    "con il più alto bilancio di morti e dispersi. Un aspetto particolarmente significativo è la predominanza della categoria **Unknown**, "
+    "molto probabilmente dovuta al fatto che molte delle vittime non vengono mai recuperate e restano disperse nelle profondità del mare.\n\n"
+    
+    "Si osserva inoltre una **grande prevalenza di vittime di sesso maschile** nelle regioni del **Nord e Centro America**, "
+    "suggerendo che il fenomeno migratorio in queste aree coinvolga in larga parte uomini. Un altro elemento degno di nota è il caso del "
+    "**Sud-est asiatico**, che si distingue come un **outlier** per il numero di **minori di 18 anni** coinvolti, con **428 vittime** registrate, "
+    "un valore significativamente più alto rispetto ad altre regioni.\n\n"
+    
+    "_Nota:_ Per ragioni di leggibilità, non sono state inserite etichette numeriche per ogni fetta del grafico, poiché avrebbero compromesso "
+    "l'aspetto visivo complessivo. Tuttavia, per chi utilizza un **PC**, è possibile visualizzare il valore esatto di ciascuna categoria "
+    "passando il mouse sopra le sezioni del grafico."
+    )
+#NON riesco a sistemare bene le etichette all'interno di ogni torta.
+
 #4. Causa di morte per regione
 def stackedbarchart():
-    st.write("### Percentuale delle Cause di Morte per Regione")
+    st.markdown("---")
+    st.write("## Distribuzione Percentuale delle Cause di Morte per Regione")
+
+    st.markdown(
+    "Il grafico presentato è un **istogramma a barre impilate** che mostra la distribuzione percentuale delle **cause di morte** "
+    "per ciascuna regione. Ogni barra rappresenta una regione e le diverse sezioni colorate indicano la proporzione delle varie "
+    "cause di decesso rispetto al totale registrato in quella specifica area geografica.\n\n"
+    
+    "L'interfaccia ha la possibilità di **selezionare fino a 14 regioni** da includere nel grafico, consentendo un'analisi mirata "
+    "delle aree di interesse. Inoltre, è disponibile una funzione di **ordinamento per causa di morte**, che permette di "
+    "riorganizzare le regioni in base alla prevalenza di una specifica categoria di decesso, facilitando il confronto tra le diverse "
+    "aree geografiche."
+    )
 
     # Calcolo della percentuale
     datapd_counts = datapd.groupby(['Region', 'Cause of Death']).size().reset_index(name='Count')
@@ -625,11 +694,32 @@ def stackedbarchart():
     else:
         st.warning("Nessuna regione selezionata.")
 
+    st.markdown(
+    "Ordinando il grafico in base alla causa di morte **Drowning (annegamento)**, emergono in prima posizione le regioni del "
+    "**Mediterraneo** e dei **Caraibi**, un risultato pienamente in linea con le aspettative. Queste due aree sono infatti caratterizzate "
+    "da pericolose rotte marittime, lungo le quali il rischio di naufragi è estremamente elevato.\n\n"
+    
+    "D'altro canto, se si seleziona l'ordinamento per **Mixed or unknown**, le regioni con la percentuale più alta risultano essere il "
+    "**Nord Africa** e il **Nord America**. Questo dato è particolarmente significativo, in quanto suggerisce che in queste zone "
+    "le circostanze esatte del decesso rimangono spesso sconosciute, probabilmente a causa della difficoltà nel recupero dei corpi "
+    "o della mancanza di informazioni dettagliate sugli eventi che hanno portato alla morte dei migranti.\n\n"
+    
+    "Questa differenza evidenzia come le **dinamiche della mortalità migratoria** varino sensibilmente in base alla regione, "
+    "riflettendo sia le condizioni ambientali che il livello di tracciabilità degli incidenti."
+    )
+
 ###################################################################################################################################
 # ANALISI GEOSPAZIALE
 #1. Mappa dei punti sulla base delle coordinate
 def points_map(map_style):
-    st.write("### Mappa dei punti sulla base delle coordinate")
+    st.markdown("---")
+    st.write("## Mappa dei punti sulla base delle coordinate")
+
+    st.write("""
+    Questa mappa è completamente interattiva e può essere ingrandita o rimpicciolita a piacere per analizzare con maggiore dettaglio le diverse aree geografiche. 
+    Ogni punto rappresenta un evento registrato e la sua dimensione è proporzionale al numero totale di morti e dispersi associati all'incidente: 
+    eventi con un maggior numero di vittime sono visualizzati con punti più grandi.
+    """)
 
     #pulizia del DataFrame eliminando righe con NaN in 'Coordinates', creazione copia
     datapd_cleaned = datapd.dropna(subset=["Coordinates"]).copy()
@@ -684,12 +774,34 @@ def points_map(map_style):
 
     st.pydeck_chart(map_deck)
 
+    st.write("""
+    Questa mappa mette in evidenza come il fenomeno delle tragedie migratorie non sia limitato all’Europa o al Nord America, 
+    ma rappresenti una crisi umanitaria su scala globale. Gli eventi segnati si distribuiscono lungo molteplici rotte migratorie, 
+    attraversando continenti e mostrando come regioni dell’Africa, del Medio Oriente, dell’Asia e dell’America Latina siano 
+    altrettanto colpite. Il Mediterraneo, il deserto del Sahara, il confine tra Messico e Stati Uniti e le rotte marittime 
+    dell’Asia sud-orientale sono solo alcune delle aree dove i migranti affrontano pericoli estremi nel tentativo di trovare 
+    sicurezza e migliori condizioni di vita.
+
+    Questa visualizzazione aiuta a comprendere che la crisi migratoria è una questione universale, che coinvolge governi, 
+    organizzazioni internazionali e società civili di tutto il mondo. La sua risoluzione richiede una cooperazione globale 
+    per affrontare le cause profonde delle migrazioni forzate e garantire percorsi più sicuri per chi è costretto a fuggire.
+    """)
+
     return datapd_cleaned
 
 #2. Heatmap dei punti sulla base delle coordinate
 def heatmap(datapd_cleaned, map_style):
-    st.write("### Heatmap delle regioni geografiche più colpite")
-    
+    st.markdown("---")
+    st.write("## Heatmap delle regioni geografiche più colpite")
+
+    st.write("""
+    Questo grafico rappresenta una heatmap che evidenzia le aree geografiche con il maggior numero di morti e dispersi 
+    registrati lungo le rotte migratorie. Le zone più scure indicano una densità più elevata di tragedie, mostrando i luoghi 
+    dove il fenomeno è particolarmente critico. La mappa è interattiva e si adatta dinamicamente allo zoom, permettendo 
+    di osservare i dettagli con maggiore precisione a seconda del livello di ingrandimento. Questa funzionalità consente 
+    di esplorare l’impatto della crisi migratoria sia a livello globale che locale.
+    """)
+
     # Calcolo dei pesi (amplificati per una maggiore visibilità)
     datapd_cleaned["weight"] = (
         datapd_cleaned["Total Number of Dead and Missing"] / datapd_cleaned["Total Number of Dead and Missing"].max()
@@ -774,10 +886,33 @@ def heatmap(datapd_cleaned, map_style):
         
         # Mostra la colorbar in Streamlit
         st.image(buf, use_container_width=True)
+    
+    st.write("""
+    Questa heatmap fornisce un'evidenza visiva dell'entità della crisi migratoria, mettendo in luce le regioni del mondo 
+    dove il numero di vittime è particolarmente elevato. Le concentrazioni più intense di morti e dispersi non sono casuali, 
+    ma riflettono i pericoli estremi affrontati dai migranti in specifiche rotte, come il Mediterraneo centrale, il deserto del 
+    Sahara e il confine tra Messico e Stati Uniti. Questa rappresentazione non solo aiuta a identificare le aree più colpite, 
+    ma solleva anche interrogativi fondamentali sulle cause e sulle possibili soluzioni per mitigare queste tragedie. 
+    
+    A differenza della mappa a punti, che mostra la localizzazione esatta degli eventi registrati, la heatmap permette di 
+    visualizzare le aree in cui si concentra il maggior numero di tragedie, rendendo più immediata la percezione dell'impatto 
+    geografico complessivo e facilitando il riconoscimento delle zone più critiche.
+    """)
 
 #3. Mappa dei punti colorati per categoria
 def points_map_by_cat(datapd_cleaned, map_style):
-    st.write("### Mappa dei punti colorati per categoria")
+    st.markdown("---")
+    st.write("## Mappa dei punti colorati per categoria")
+
+    st.write("""
+    Questa mappa interattiva offre la possibilità di visualizzare gli eventi migratori secondo due diverse categorie: 
+    la **causa di morte** o la **rotta migratoria**. Selezionando una delle opzioni disponibili, i punti sulla mappa verranno 
+    colorati in base alla variabile scelta, permettendo di identificare rapidamente le dinamiche degli eventi registrati.  
+
+    La colorazione per **causa di morte** consente di distinguere le circostanze delle tragedie, come annegamenti, violenze o 
+    condizioni ambientali estreme. In alternativa, la classificazione per **rotta migratoria** aiuta a comprendere le traiettorie 
+    seguite dai migranti e le zone in cui gli incidenti avvengono con maggiore frequenza.
+    """)
 
     #opzioni per la selezione della categoria
     categories = ["Cause of Death", "Migrantion route"]
@@ -878,10 +1013,25 @@ def points_map_by_cat(datapd_cleaned, map_style):
 
     st.markdown(legend_html, unsafe_allow_html=True)
 
+    st.write("""
+    Come evidenziato anche nel grafico a barre sovrapposte, la causa di morte più frequente nelle tragedie migratorie è l’annegamento (**Drowning**). 
+    Questa tendenza è particolarmente evidente nelle rotte che attraversano il **Mediterraneo centrale** e la **regione caraibica**, 
+    dove i viaggi in mare avvengono spesso in condizioni estreme e con imbarcazioni precarie.  
+    
+    Un altro aspetto rilevante è l'alta frequenza della categoria **Mixed or Unknown** lungo il **confine tra Messico e Stati Uniti**, 
+    dove molte morti di migranti non vengono chiaramente attribuite a una causa specifica. Questo riflette le difficoltà nel determinare 
+    le circostanze esatte degli incidenti, spesso legati a condizioni ambientali estreme o alla violenza.  
+    
+    Selezionando invece la variabile **Migration route**, i punti vengono suddivisi in gruppi ben distinti, 
+    permettendo di visualizzare chiaramente le principali rotte seguite dai migranti e le aree in cui si verificano i maggiori eventi tragici.
+    """)
+
+
 ################################################################################################################
 # ANALISI DEI GRUPPI
 #1. Gruppo del mediterraneo
 def mediterranean_group(map_style):
+    st.markdown("---")
     st.write("### Gruppo dei punti nel Mediterraneo")
 
     # Filtriamo il dataframe per la regione "Mediterranean"
@@ -959,6 +1109,7 @@ def mediterranean_group(map_style):
 
 #2. Gruppo del confine tra Messico e Stati Uniti
 def mexico_us_border_group(map_style):
+    st.markdown("---")
     st.write("### Gruppo dei punti sul confine tra Messico e Stati Uniti")
 
     # Filtriamo il dataframe per le regioni North America e Central America
@@ -1057,6 +1208,7 @@ def mexico_us_border_group(map_style):
 
 #3. Gruppo del deserto del Sahara
 def sahara_desert_group(map_style):
+    st.markdown("---")
     st.write("### Gruppo dei punti nel Deserto del Sahara")
 
     # Definizione del bounding box (rettangolo verde)
@@ -1156,7 +1308,7 @@ def page_introduction():
     migration_tragedies()
     dataframe()
     st.markdown("""
-    ### Prosegui con l'analisi
+    #### Prosegui con l'analisi
     Per approfondire ulteriormente, esplora le altre sezioni disponibili nel menu a sinistra.
     """)
     
@@ -1174,12 +1326,35 @@ def page_descriptive_analysis():
     piechart()
     stackedbarchart()
 
+    st.markdown("""
+    #### Prosegui con l'analisi
+    Per approfondire ulteriormente, esplora le altre sezioni disponibili nel menu a sinistra.
+    """)
+
 def page_geo_analysis():
-    st.title("Analisi geospaziali")
+    st.title("Visualizzazione Geospaziale delle Tragedie Migratorie")
+
+    st.write("""
+    In questa sezione si offre una rappresentazione visiva degli eventi tragici legati alla migrazione a livello globale. 
+    Attraverso una serie di mappe interattive, è possibile individuare i punti in cui si sono verificati incidenti, 
+    fornendo così un quadro chiaro dell’impatto geografico del fenomeno. 
+    L'obiettivo è quello di evidenziare la distribuzione delle tragedie nel contesto mondiale, 
+    permettendo una comprensione più approfondita della crisi umanitaria legata ai flussi migratori.
+
+    A supporto dell’analisi, viene riportata un’immagine rappresentativa delle principali rotte migratorie globali. 
+    Questa mappa, pur essendo semplificata, offre un'indicazione chiara e immediata delle traiettorie percorse dai migranti 
+    e delle aree di maggiore transito e rischio.
+    """)
 
     image_folder = Path("images")
     image_path = image_folder / "flussi migratori2.png"
     st.image(str(image_path), use_container_width=True)
+
+    st.write("""
+    È inoltre possibile personalizzare la visualizzazione selezionando la tipologia di mappa preferita, 
+    scegliendo tra una mappa politica e una mappa satellitare, 
+    in modo da adattare l’analisi alle proprie esigenze di esplorazione dei dati.
+    """)
 
     map_style_options = ["Mappa Politica", "Mappa Satellitare"]
     selected_map_style = st.pills(
@@ -1201,6 +1376,11 @@ def page_geo_analysis():
     datapd_cleaned = points_map(map_style)
     heatmap(datapd_cleaned, map_style)
     points_map_by_cat(datapd_cleaned, map_style)
+
+    st.markdown("""
+    #### Prosegui con l'analisi
+    Per approfondire ulteriormente, esplora le altre sezioni disponibili nel menu a sinistra.
+    """)
 
 def page_group_analysis():
     st.title("Analisi dei gruppi")
