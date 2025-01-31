@@ -9,6 +9,7 @@ import math
 import matplotlib.pyplot as plt # utilizzata per la colorbar della heatmap
 import io                       # utilizzata per la colorbar della heatmap
 from scipy.spatial import ConvexHull # utilizzata per il poligono dei gruppi
+from pathlib import Path
 
 st.set_page_config(
     page_title="Missing Migrants Project",
@@ -23,7 +24,7 @@ def load_data():
         .select(["Region", "Incident Date", "Year", "Reported Month", "Number Dead",
         "Minimum Estimated Number of Missing", "Total Number of Dead and Missing", 
         "Number of Survivors", "Number of Females", "Number of Males", "Number of Children",
-        "Cause of Death", "Coordinates", "Migrantion route", "UNSD Geographical Grouping"])
+        "Cause of Death", "Coordinates", "Migrantion route", "UNSD Geographical Grouping", "URL"])
     )
     data = data.with_columns(
     data["Incident Date"]
@@ -35,7 +36,55 @@ def load_data():
 
 data, datapd = load_data()
 
+def migration_tragedies():
+    image_folder = Path("images")
+    
+    # Sezione su Alan Kurdi
+    st.markdown("## Sotto agli occhi di tutti")
+    st.markdown("""
+    Nel 2014, la comunità internazionale è venuta a conoscenza dell’orribile realtà della morte di questi migranti, spesso attraverso immagini come questa, che si concentra su un rifugiato siriano di tre anni di nome Alan Kurdi.  
+    Lui e la sua famiglia sono morti nel settembre del 2015 vicino a Bodrum, in Turchia. Erano in viaggio per il Canada.  
+    """)
+    
+    image_path = image_folder / "Alan Kurdi.jpg"
+    st.image(str(image_path), use_container_width=True)
+    
+    st.markdown("[Link alla pagina Wikipedia (EN)](https://en.wikipedia.org/wiki/Death_of_Alan_Kurdi)")
+    
+    # Sezione su Óscar e Valeria Martínez
+    st.markdown("## Uno sguardo in Centro America")
+    st.markdown("""
+    Spostandoci in Centro America, troviamo un altro caso che ha suscitato profonda indignazione e ha reso evidente la pericolosità delle migrazioni forzate.  
+    
+    Óscar Alberto Martínez Ramírez e sua figlia Valeria sono morti mentre cercavano di attraversare il Rio Grande, la loro morte catturata da un'immagine orribile e inquietante che ha suscitato indignazione.  
+    
+    Padre e figlia giacciono a faccia in giù nell'acqua sulla riva del Rio Grande a Matamoros, in Messico, Valeria infilata nella maglietta di suo padre con il suo piccolo braccio avvolto attorno al suo collo.  
+    """)
+    
+    image_path = image_folder / "Alberto e Valeria Martínez.jpg"
+    st.image(str(image_path), use_container_width=True)
+    st.markdown("[Link alla pagina su NBC News (EN)](https://www.nbcnews.com/news/latino/family-salvadoran-migrant-dad-child-who-drowned-say-he-loved-n1022226)")
+
+    # Sezione sul Naufragio del 18 aprile 2015
+    st.markdown("## Il disastro nel Canale di Sicilia")
+    st.markdown("""
+    La cosiddetta tragedia nel Canale di Sicilia è stato il naufragio di un'imbarcazione eritrea usata per il trasporto di migranti avvenuto la notte del 18 aprile 2015 al largo delle coste della Libia.  
+    Il naufragio dell'imbarcazione ha provocato 58 vittime accertate, 28 superstiti salvati e fra i 700 e i 900 dispersi presunti, numeri che la pongono come una delle più gravi tragedie marittime nel Mediterraneo dall'inizio del 21° secolo.  
+    """)
+    
+    image_path = image_folder / "naufragio canale di sicilia.jpeg"
+    st.image(str(image_path), use_container_width=True)
+    st.markdown("[Link alla pagina Wikipedia (IT)](https://it.wikipedia.org/wiki/Naufragio_nel_Canale_di_Sicilia_del_18_aprile_2015)")
+
 def dataframe():
+    st.markdown("""
+    In questa applicazione web si cerca di fornire una breve analisi e di presentare alcuni dati su queste tragedie, cercando di renderli il più comprensibili possibile.  
+    """)
+
+    st.markdown("""
+    Questo è il **dataframe** utilizzato per l'analisi, sotto ci sono le descrizioni delle variabili:
+    """)
+
     st.dataframe(data, use_container_width=True)
 
     data_description = {
@@ -43,24 +92,25 @@ def dataframe():
             "Region", "Incident Date", "Year", "Reported Month", "Number Dead",
             "Minimum Estimated Number of Missing", "Total Number of Dead and Missing", 
             "Number of Survivors", "Number of Females", "Number of Males", "Number of Children",
-            "Cause of Death", "Coordinates", "Migrantion route", "UNSD Geographical Grouping"
+            "Cause of Death", "Coordinates", "Migrantion route", "UNSD Geographical Grouping", "URL"
         ],
         "Descrizione": [
             "La regione in cui si è verificato l'incidente.",
-            "La data stimata della morte indica il ritrovamento dei corpi o la data riportata da testimoni; se aggregata, viene segnata come 'totale cumulativo'.",
+            "La data stimata della morte indica il ritrovamento dei corpi o la data riportata da testimoni.",
             "L'anno in cui è avvenuto l'incidente.",
             "Il mese in cui si è verificato l'incidente.",
             "Il numero totale di persone confermate morte in un incidente, ovvero il numero di corpi recuperati. Se i migranti risultano dispersi e presunti morti, come nei casi di naufragi, viene lasciato vuoto.",
             "Il numero totale di coloro che risultano dispersi e quindi si presume siano morti. Questa variabile viene generalmente registrata negli incidenti che coinvolgono naufragi. Il numero dei dispersi si calcola sottraendo il numero dei corpi recuperati da un naufragio e il numero dei sopravvissuti dal numero totale dei migranti segnalati sulla barca. Questo numero può essere segnalato da migranti o testimoni sopravvissuti. Se non vengono segnalate persone scomparse, il campo viene lasciato vuoto.",
-            "La somma delle variabili “numero morti” e “numero mancante”.",
-            "Il numero di migranti sopravvissuti all'incidente, se noto. L'età, il sesso e il paese di origine dei sopravvissuti sono registrati nella variabile 'Commenti', se noti. Se sconosciuto, viene lasciato vuoto",
-            "Indica il numero di femmine trovate morte o scomparse. Se sconosciuto, viene lasciato vuoto.",
-            "Indica il numero di maschi trovati morti o dispersi. Se sconosciuto, viene lasciato vuoto.",
+            'La somma delle variabili “Number Dead” e “Minimum Estimated Number of Missing”.',
+            "Il numero di migranti sopravvissuti all'incidente, se noto. Se sconosciuto, viene lasciato vuoto",
+            "Indica il numero di donne trovate morte o scomparse. Se sconosciuto, viene lasciato vuoto.",
+            "Indica il numero di uomini trovati morti o dispersi. Se sconosciuto, viene lasciato vuoto.",
             "Indica il numero di individui di età inferiore ai 18 anni trovati morti o dispersi. Se sconosciuto, viene lasciato vuoto.",
-            "La determinazione delle condizioni che hanno portato alla morte del migrante ovvero le circostanze dell'evento che ha prodotto la lesione mortale. Se sconosciuto, il motivo è incluso ove possibile. Ad esempio, “Sconosciuto – solo resti scheletrici”, viene utilizzato nei casi in cui è stato ritrovato solo lo scheletro del defunto.",
+            "La determinazione delle condizioni che hanno portato alla morte del migrante, ovvero le circostanze dell'evento che ha prodotto la lesione mortale. Se sconosciuto, il motivo è incluso ove possibile.",
             "Luogo in cui è avvenuta la morte o dove sono stati ritrovati il corpo o i corpi. In molte regioni, in particolare nel Mediterraneo, le coordinate geografiche vengono stimate poiché spesso le posizioni precise non sono note. La descrizione della posizione deve essere sempre confrontata con le coordinate della posizione.",
             "Nome della rotta migrante sulla quale si è verificato l'incidente, se noto. Se sconosciuto, viene lasciato vuoto.",
             "Regione geografica in cui è avvenuto l'incidente, come designato dal geoschema della United Nations Statistics Division (UNSD).",
+            "URL della fonte originale dei dati. Se non disponibile, viene lasciato vuoto."
         ]
         }
 
@@ -71,6 +121,15 @@ def dataframe():
 
     st.markdown(table_markdown)
     st.markdown('La fonte dei dati si trova a questo [link](https://www.kaggle.com/datasets/snocco/missing-migrants-project).', unsafe_allow_html=True)
+
+    url_counts = datapd["URL"].value_counts().dropna()
+    top_sources = url_counts.head(5)
+
+    st.markdown("### Fonti principali del dataset")
+    st.markdown("Il dataset è stato costruito a partire da diverse fonti. Ecco le principali:")
+    
+    for fonte, freq in top_sources.items():
+        st.markdown(f"- [{fonte}]({fonte})")
 
 ###################################################################################################################################
 # ANALISI DESCRITTIVA DEI DATI
@@ -1059,15 +1118,35 @@ def sahara_desert_group(map_style):
 def page_introduction():
     st.title(":red[Missing] Migrants Project")
     st.markdown("""
-    #### Nota: Attiva il tema scuro
-    Per una migliore esperienza, ti consigliamo di abilitare il tema scuro.  
-    Vai su **Menu (in alto a destra)** > **Settings** > **Theme** > **Dark**.
-    Grazie!
+    <div style="border: 1px solid white; padding: 15px; background-color: #2b2b2b; margin-bottom: 15px;">
+        <b>Nota:</b> Attiva il tema scuro per una migliore esperienza. Vai su <b>Menu (in alto a destra)</b> > <b>Settings</b> > <b>Theme</b> > <b>Dark</b>.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    Il mondo sta affrontando una crisi migratoria. In un’era di esodi e sfollamenti forzati, i governi ospitanti nei paesi sviluppati si sono sempre più impegnati a respingere i migranti.
     """)
+
+    total_dead_missing = datapd["Total Number of Dead and Missing"].sum()
+    st.markdown(f"""
+    ### Dal 2014 al 2021, oltre **:red[{total_dead_missing}]** migranti sono morti o scomparsi nel loro viaggio verso una vita migliore.
+    """)
+    
+    migration_tragedies()
     dataframe()
+    st.markdown("""
+    ### Prosegui con l'analisi
+    Per approfondire ulteriormente, esplora le altre sezioni disponibili nel menu a sinistra.
+    """)
     
 def page_descriptive_analysis():
     st.title("Analisi Descrittive")
+
+    st.markdown(
+        "In questa sezione si propone un'analisi descrittiva delle variabili presenti nel dataset, "
+        "con l'obiettivo di fornire una panoramica generale sulla loro distribuzione e sulle caratteristiche principali dei dati raccolti."
+    )
+    
     regions_map()
     timeseries()
     barchart()
@@ -1076,7 +1155,11 @@ def page_descriptive_analysis():
 
 def page_geo_analysis():
     st.title("Analisi geospaziali")
-    st.image("flussi migratori2.png", caption="Flussi migratori", use_container_width=True)
+
+    image_folder = Path("images")
+    image_path = image_folder / "flussi migratori2.png"
+    st.image(str(image_path), use_container_width=True)
+
     map_style_options = ["Mappa Politica", "Mappa Satellitare"]
     selected_map_style = st.pills(
         "Seleziona il tipo di mappa",
