@@ -76,7 +76,7 @@ uv run streamlit run app.py
 Il sito verrà aperto automaticamente nel browser.
 
 ### **💡 Alternativa: usare il sito web**
-Se non sei interessato al codice e vuoi solo utilizzare l'applicazione, puoi accedere direttamente al sito tramite il link disponibile nella repository GitHub.
+Se non sei interessato al codice e vuoi solo visualizzare l'applicazione, puoi accedere direttamente al sito tramite il link disponibile nella repository GitHub.
 
 ## **Descrizione dei file principali**
 

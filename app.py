@@ -1679,7 +1679,7 @@ page_order = {
 }
 
 if "selected_page" not in st.session_state:
-    st.session_state["selected_page"] = "Introduzione"  # Pagina iniziale
+    st.session_state["selected_page"] = "Introduzione"  # pagina iniziale
 
 st.sidebar.title("Navigazione")
 selection = st.sidebar.radio("Vai a:", list(pages.keys()), index=list(pages.keys()).index(st.session_state["selected_page"]))
