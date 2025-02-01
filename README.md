@@ -55,3 +55,22 @@ Apri il terminale e clona la cartella del progetto utilizzando **Git**:
 git clone https://github.com/simoneP-txt/MissingMigrantsProject.git
 ```
 
+### **2️⃣ Spostarsi nella cartella del progetto**
+Dopo aver clonato la repository, entra nella cartella corretta. Su Windows, il comando è **cd**
+
+Esempio:
+```bash
+cd C:\Users\NomeUtente\MissingMigrantsProject
+```
+
+Su macOS/Linux, usa:
+```bash
+cd ~/MissingMigrantsProject
+```
+
+### **3️⃣ Avviare l'applicazione**
+All'interno della cartella del progetto, esegui il seguente comando per avviare l'app:
+```bash
+uv run streamlit run app.py
+```
+Il sito verrà aperto automaticamente nel browser.
