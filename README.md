@@ -43,3 +43,15 @@ Di seguito, l'elenco delle variabili selezionate per l'analisi e la loro descriz
 | `URL`                                            | URL della fonte originale dei dati. Se non disponibile, il valore è assente. |
 
 Le informazioni contenute nel dataset forniscono una base solida per analizzare le tendenze della crisi migratoria e individuare i punti critici lungo le rotte più pericolose.
+
+## **Come far funzionare il codice**
+
+Per eseguire il progetto in locale, segui questi passaggi:
+
+### **1️⃣ Clonare la repository**
+Apri il terminale e clona la cartella del progetto utilizzando **Git**:
+
+```bash
+git clone https://github.com/simoneP-txt/MissingMigrantsProject.git
+```
+
