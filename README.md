@@ -118,9 +118,3 @@ Nel progetto vengono utilizzate diverse librerie per la gestione dei dati, la vi
 | `requests`          | Scaricamento di dati da URL esterni, come il file TopoJSON. |
 | `colorsys`          | Conversione dei colori tra diversi modelli di colore (RGB, HSL). |
 | `os`               | Interazione con il filesystem, ad esempio per controllare l'esistenza di file. |
-
-Queste librerie consentono di elaborare i dati, visualizzarli in modo efficace e costruire un'applicazione web interattiva per analizzare le tragedie migratorie.
-
----
-
-🚀 **Ora il tuo README è completo!** Se vuoi aggiungere o migliorare qualcosa, dimmi pure! 😊
