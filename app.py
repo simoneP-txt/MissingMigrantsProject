@@ -11,14 +11,19 @@ import io                        # utilizzata per la colorbar della heatmap
 from scipy.spatial import ConvexHull # utilizzata per il poligono dei gruppi
 from pathlib import Path
 
+# configurazione della pagina
 st.set_page_config(
     page_title="Missing Migrants Project",
     page_icon = "🌍"
 )
 
 #Preprocessing
-@st.cache_data
+@st.cache_data #cache dei dati 
+
+# Funzione per caricare i dati
 def load_data():
+
+    #seleziona solo le colonne di interesse
     data = (
         pl.read_csv("MM_14_21.csv", null_values=["", "NA", " "])
         .select(["Region", "Incident Date", "Year", "Reported Month", "Number Dead",
@@ -26,67 +31,88 @@ def load_data():
         "Number of Survivors", "Number of Females", "Number of Males", "Number of Children",
         "Cause of Death", "Coordinates", "Migrantion route", "UNSD Geographical Grouping", "URL"])
     )
+
+    # estrazione del giorno della settimana e della data
     data = data.with_columns(
-    data["Incident Date"]
-    .str.extract(r"^(\w{3}, \d{2}/\d{2}/\d{4})")  # Estrarre solo giorno della settimana e data
-    .alias("Incident Date")  # Sovrascrive la colonna esistente
+        data["Incident Date"]
+        .str.extract(r"^(\w{3}, \d{2}/\d{2}/\d{4})")
+        .alias("Incident Date") #sovreaascrive la colonna
     )
-    datapd = data.to_pandas()
+    datapd = data.to_pandas() #conversione a pandas per utilità
     return data, datapd
 
 data, datapd = load_data()
 
+###################################################################################################################################
+# PAGINA INTRODUTTIVA
+
+# Funzione di visualizzazione di alcune tragedie migratorie
 def migration_tragedies():
-    image_folder = Path("images")
-    
-    # Sezione su Alan Kurdi
+    image_folder = Path("images")  # percorso della cartella contenente le immagini
+
+    # sezione su Alan Kurdi
     st.markdown("## Sotto agli occhi di tutti")
     st.markdown("""
-    Nel 2014, la comunità internazionale è venuta a conoscenza dell’orribile realtà della morte di questi migranti, spesso attraverso immagini come questa, che si concentra su un rifugiato siriano di tre anni di nome Alan Kurdi.  
+    Nel 2014, la comunità internazionale è venuta a conoscenza dell’orribile realtà della morte di questi migranti, 
+    spesso attraverso immagini come questa, che si concentra su un rifugiato siriano di tre anni di nome Alan Kurdi.  
     Lui e la sua famiglia sono morti nel settembre del 2015 vicino a Bodrum, in Turchia. Erano in viaggio per il Canada.  
     """)
-    
-    image_path = image_folder / "Alan Kurdi.jpg"
-    st.image(str(image_path), use_container_width=True)
-    
+
+    image_path = image_folder / "Alan Kurdi.jpg"  # percorso dell'immagine di Alan Kurdi
+    st.image(str(image_path), use_container_width=True)  # visualizzazione dell'immagine
+
+    # link di approfondimento su Wikipedia
     st.markdown("[Link alla pagina Wikipedia (EN)](https://en.wikipedia.org/wiki/Death_of_Alan_Kurdi)")
-    
-    # Sezione su Óscar e Valeria Martínez
+
+    # sezione su Óscar e Valeria Martínez
     st.markdown("## Uno sguardo in Centro America")
     st.markdown("""
-    Spostandoci in Centro America, troviamo un altro caso che ha suscitato profonda indignazione e ha reso evidente la pericolosità delle migrazioni forzate.  
+    Spostandoci in Centro America, troviamo un altro caso che ha suscitato profonda indignazione e ha reso evidente 
+    la pericolosità delle migrazioni forzate.  
     
-    Óscar Alberto Martínez Ramírez e sua figlia Valeria sono morti mentre cercavano di attraversare il Rio Grande, la loro morte catturata da un'immagine orribile e inquietante.
+    Óscar Alberto Martínez Ramírez e sua figlia Valeria sono morti mentre cercavano di attraversare il Rio Grande, 
+    la loro morte catturata da un'immagine orribile e inquietante.
     
-    Padre e figlia giacciono a faccia in giù nell'acqua sulla riva del Rio Grande a Matamoros, in Messico, Valeria infilata nella maglietta di suo padre con il suo piccolo braccio avvolto attorno al suo collo.  
+    Padre e figlia giacciono a faccia in giù nell'acqua sulla riva del Rio Grande a Matamoros, in Messico, 
+    Valeria infilata nella maglietta di suo padre con il suo piccolo braccio avvolto attorno al suo collo.  
     """)
-    
-    image_path = image_folder / "Alberto e Valeria Martínez.jpg"
-    st.image(str(image_path), use_container_width=True)
+
+    image_path = image_folder / "Alberto e Valeria Martínez.jpg"  # percorso dell'immagine di Óscar e Valeria Martínez
+    st.image(str(image_path), use_container_width=True)  # visualizzazione dell'immagine
+
+    # link di approfondimento su NBC News
     st.markdown("[Link alla pagina su NBC News (EN)](https://www.nbcnews.com/news/latino/family-salvadoran-migrant-dad-child-who-drowned-say-he-loved-n1022226)")
 
-    # Sezione sul Naufragio del 18 aprile 2015
+    # sezione sul Naufragio del 18 aprile 2015
     st.markdown("## Il disastro nel Canale di Sicilia")
     st.markdown("""
-    La cosiddetta tragedia nel Canale di Sicilia è stato il naufragio di un'imbarcazione eritrea usata per il trasporto di migranti avvenuto la notte del 18 aprile 2015 al largo delle coste della Libia.  
-    Il naufragio dell'imbarcazione ha provocato 58 vittime accertate, 28 superstiti salvati e fra i 700 e i 900 dispersi presunti, numeri che la pongono come una delle più gravi tragedie marittime nel Mediterraneo dall'inizio del 21° secolo.  
-    """)
+    La cosiddetta tragedia nel Canale di Sicilia è stato il naufragio di un'imbarcazione eritrea usata per il trasporto di migranti 
+    avvenuto la notte del 18 aprile 2015 al largo delle coste della Libia.  
     
-    image_path = image_folder / "naufragio canale di sicilia.jpeg"
-    st.image(str(image_path), use_container_width=True)
+    Il naufragio dell'imbarcazione ha provocato 58 vittime accertate, 28 superstiti salvati e fra i 700 e i 900 dispersi presunti, 
+    numeri che la pongono come una delle più gravi tragedie marittime nel Mediterraneo dall'inizio del 21° secolo.  
+    """)
+
+    image_path = image_folder / "naufragio canale di sicilia.jpeg"  # percorso dell'immagine del naufragio del Canale di Sicilia
+    st.image(str(image_path), use_container_width=True)  # visualizzazione dell'immagine
+
+    # link di approfondimento su Wikipedia
     st.markdown("[Link alla pagina Wikipedia (IT)](https://it.wikipedia.org/wiki/Naufragio_nel_Canale_di_Sicilia_del_18_aprile_2015)")
 
+# funzione per visualizzare il dataframe e descrivere le variabili del dataset
 def dataframe():
     st.markdown("""
-    In questa applicazione web si cerca di fornire una breve analisi e di presentare alcuni dati su queste tragedie, cercando di renderli il più comprensibili possibile.  
+    In questa applicazione web si cerca di fornire una breve analisi e di presentare alcuni dati su queste tragedie, 
+    cercando di renderli il più comprensibili possibile.  
     """)
 
     st.markdown("""
     Questo è il **dataframe** utilizzato per l'analisi, sotto ci sono le descrizioni delle variabili:
     """)
 
-    st.dataframe(data, use_container_width=True)
+    st.dataframe(data, use_container_width=True)  # visualizzazione del dataframe in Streamlit
 
+    # dizionario contenente le variabili del dataset e la loro descrizione
     data_description = {
         "Variabili": [
             "Region", "Incident Date", "Year", "Reported Month", "Number Dead",
@@ -114,31 +140,36 @@ def dataframe():
         ]
         }
 
+    # creazione di una tabella in markdown per mostrare la descrizione delle variabili
     table_markdown = """
 | Variabili         | Descrizione                                                                 |
 |-------------------|-----------------------------------------------------------------------------|
 """ + "\n".join([f"| {var} | {desc} |" for var, desc in zip(data_description["Variabili"], data_description["Descrizione"])])
 
-    st.markdown(table_markdown)
+    st.markdown(table_markdown)  # visualizzazione della tabella in Streamlit
+
+    # link alla fonte del dataset su Kaggle
     st.markdown('La fonte dei dati si trova a questo [link](https://www.kaggle.com/datasets/snocco/missing-migrants-project).', unsafe_allow_html=True)
 
-    url_counts = datapd["URL"].value_counts().dropna()
-    top_sources = url_counts.head(5)
+    url_counts = datapd["URL"].value_counts().dropna()  # conteggio delle fonti uniche nel dataset
+    top_sources = url_counts.head(5)  # selezione delle prime 5 fonti più utilizzate
 
+    # visualizzazione delle principali fonti del dataset
     st.markdown("### Fonti principali del dataset")
     st.markdown("Il dataset è stato costruito a partire da diverse fonti. Ecco le principali:")
     
     for fonte, freq in top_sources.items():
-        st.markdown(f"- [{fonte}]({fonte})")
+        st.markdown(f"- [{fonte}]({fonte})")  # plot dei link alle fonti più utilizzate
 
 ###################################################################################################################################
 # ANALISI DESCRITTIVA DEI DATI
-#0. Mappa delle regioni del dataset
-def hex_to_rgb(hex_color):
-    #Converte un colore esadecimale in formato RGB.
-    hex_color = hex_color.lstrip('#')
-    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
+#Converte un colore esadecimale in formato RGB.
+def hex_to_rgb(hex_color):
+    hex_color = hex_color.lstrip('#')  # rimuove il carattere '#' all'inizio del codice esadecimale
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))  # converte ogni coppia di caratteri in un valore RGB
+
+#0. Mappa delle regioni presenti nel dataset
 def regions_map():
     st.write("## Mappa delle Regioni")
 
@@ -148,34 +179,35 @@ def regions_map():
         "Successivamente nell'applicazione sarà possibile selezionare specifiche regioni per un'analisi più dettagliata."
     )
 
-    # Carico il dataset aggiornato
+    # carico il dataset aggiornato
     file_path = "countries.csv"
-    df_countries = pd.read_csv(file_path)
+    df_countries = pd.read_csv(file_path)  # lettura del file csv contenente le informazioni sulle regioni
 
-    # Definisco la palette di colori
+    # definisco la palette di colori
     color_palette = [
-        "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF",  # Rosso, Verde, Blu, Giallo, Magenta
-        "#00FFFF", "#800000", "#008000", "#000080", "#808000",  # Ciano, Marrone scuro, Verde scuro, Blu scuro, Verde oliva
-        "#FFA500", "#4B0082", "#FFC0CB", "#8B4513", "#209186",  # Arancione, Indaco, Rosa, Marrone cioccolato, Turchese
-        "#FF00DD", "#ADD8E6", "#7FFF00", "#DC143C", "#00CED1",  # Fucsia, Azzurro chiaro, Verde lime, Cremisi, Turchese scuro
-        "#8A2BE2", "#FFD700"  # Blu violetto, Oro
+        "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF",  # rosso, verde, blu, giallo, magenta
+        "#00FFFF", "#800000", "#008000", "#000080", "#808000",  # ciano, marrone scuro, verde scuro, blu scuro, verde oliva
+        "#FFA500", "#4B0082", "#FFC0CB", "#8B4513", "#209186",  # arancione, indaco, rosa, marrone cioccolato, turchese
+        "#FF00DD", "#ADD8E6", "#7FFF00", "#DC143C", "#00CED1",  # fucsia, azzurro chiaro, verde lime, cremisi, turchese scuro
+        "#8A2BE2", "#FFD700"  # blu violetto, oro
     ]
 
-    # Assegno un colore a ogni regione
-    region_list = df_countries["region"].dropna().unique().tolist()
-    region_color_dict = {region: color_palette[i % len(color_palette)] for i, region in enumerate(region_list)}
+    # assegno un colore a ogni regione
+    region_list = df_countries["region"].dropna().unique().tolist()  # elenco delle regioni senza valori nulli
+    region_color_dict = {region: color_palette[i % len(color_palette)] for i, region in enumerate(region_list)}  # associazione di un colore a ogni regione
     
-    # Mappa principale
+    # mappa principale basata su un file di confini geografici
     countries_map_50 = alt.topo_feature("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json", 'countries')
 
+    # creazione della mappa con Altair
     map_chart = (
         alt.Chart(countries_map_50)
-        .mark_geoshape(stroke="black", strokeWidth=0.5)
+        .mark_geoshape(stroke="black", strokeWidth=0.5)  # definizione del bordo dei paesi
         .encode(
             color=alt.condition(
                 alt.datum.region != "Null",
                 alt.Color("region:N", scale=alt.Scale(domain=list(region_color_dict.keys()), range=list(region_color_dict.values())), legend=None), 
-                alt.value("transparent")  # Paesi con "Null" trasparenti
+                alt.value("transparent")  # rende trasparenti i paesi con valore "Null"
             ),
             tooltip=[
                 alt.Tooltip("properties.name:N", title="Paese"),
@@ -184,24 +216,25 @@ def regions_map():
         )
         .transform_lookup(
             lookup="properties.name",
-            from_=alt.LookupData(df_countries, "country", ["country", "region"])
+            from_=alt.LookupData(df_countries, "country", ["country", "region"])  # unione tra dati geografici e dataset
         )
     )
 
+    # sfondo della mappa con colore neutro
     background = alt.Chart(countries_map_50).mark_geoshape(
         fill='lightgray',
         stroke='darkgray'
     ).encode(tooltip=alt.value(None))
 
-    # Tolgo "Null" dalla legenda
+    # rimuovo la voce "Null" dalla legenda
     legend_df = pd.DataFrame({"region": list(region_color_dict.keys()), "color": list(region_color_dict.values())})
     legend_df = legend_df[legend_df["region"] != "Null"]
 
-    # Creo la legenda con HTML + CSS
+    # creo la legenda con HTML + CSS per visualizzare i colori delle regioni
     legend_html = "<div style='display: flex; flex-wrap: wrap; gap: 10px;'>"
     for region, color in region_color_dict.items():
         if region != "Null":
-            color_rgb = hex_to_rgb(color)
+            color_rgb = hex_to_rgb(color)  # conversione colore da esadecimale a RGB
             color_rgb_str = f"rgb({color_rgb[0]}, {color_rgb[1]}, {color_rgb[2]})"
             legend_html += f"""
 <div style='display: flex; align-items: center; margin-bottom: 5px;'>
@@ -211,9 +244,9 @@ def regions_map():
         """
     legend_html += "</div>"
 
-    # Mostro la mappa
+    # combinazione della mappa e dello sfondo
     combined_map = alt.layer(background, map_chart).project(
-        type="mercator",
+        type="mercator",  # tipo di proiezione geografica
         scale=89,
         translate=[295, 166],
         center=[20, 50],
@@ -223,10 +256,10 @@ def regions_map():
         height=400
     )
 
-    # Mostro la mappa in Streamlit
+    # visualizzazione della mappa in Streamlit
     st.altair_chart(combined_map, use_container_width=True)
 
-    # Mostro la legenda HTML
+    # visualizzazione della legenda in formato HTML
     st.markdown(legend_html, unsafe_allow_html=True)
 
 #1. Serie storica del numero totale di morti e dispersi per regione
@@ -246,11 +279,11 @@ def timeseries():
     "contiene una sola osservazione, risultando pertanto in un singolo punto all'interno del grafico."
     )
     
-    # Conversione della data
+    # conversione della data nel formato datetime e rimozione dei valori mancanti
     datapd['Incident_Date'] = pd.to_datetime(datapd['Incident Date'], format='%a, %m/%d/%Y', errors='coerce').dt.date
     datapd.dropna(subset=['Incident_Date'], inplace=True)
 
-    # Selezione delle regioni
+    # selezione delle regioni disponibili nel dataset
     regions = sorted(datapd['Region'].unique().tolist())
     selected_regions = st.multiselect(
         'Seleziona le regioni di interesse (max 4):',
@@ -260,7 +293,7 @@ def timeseries():
         max_selections=4
     )
 
-    # Selezione dell'intervallo temporale
+    # selezione dell'intervallo temporale tramite uno slider interattivo
     start_date, end_date = st.slider(
         "Seleziona l'intervallo di tempo",
         min_value=dt.date(2014, 1, 1),
@@ -270,7 +303,7 @@ def timeseries():
         key="date_slider"
     )
 
-    # Filtraggio dei dati
+    # filtraggio dei dati in base alle regioni selezionate e al periodo temporale scelto
     filtered_data = datapd[
         (datapd['Region'].isin(selected_regions)) &
         (datapd['Incident_Date'] >= start_date) &
@@ -278,17 +311,18 @@ def timeseries():
     ].copy()
 
     if not filtered_data.empty:
+        # creazione di una colonna che aggrega anno e mese per l'analisi temporale
         filtered_data["Incident_Date"] = pd.to_datetime(filtered_data["Incident_Date"], errors="coerce")
         filtered_data["Year_Month"] = filtered_data["Incident_Date"].dt.to_period("M")
 
+        # aggregazione del numero totale di morti e dispersi per mese e regione
         aggregated_data = filtered_data.groupby(["Year_Month", "Region"]).agg({
             "Total Number of Dead and Missing": "sum"
         }).reset_index()
 
-        aggregated_data["Year_Month"] = aggregated_data["Year_Month"].dt.to_timestamp()
+        aggregated_data["Year_Month"] = aggregated_data["Year_Month"].dt.to_timestamp()  # conversione in timestamp
 
-        #{"date": "", "title": "", "link": "", "total_deaths": 0}
-        # Definizione degli eventi catastrofici
+        # dizionario contenente eventi catastrofici con data, titolo e numero di vittime
         events = {
             "Mediterranean": [
                 {"date": "2015-04-18", "title": "Naufragio nel Canale di Sicilia", 
@@ -304,7 +338,7 @@ def timeseries():
             ]
         }
 
-        # Filtraggio degli eventi per le regioni selezionate
+        # filtraggio degli eventi storici in base alle regioni selezionate
         event_annotations = []
         event_links = []
         for region in selected_regions:
@@ -325,7 +359,7 @@ def timeseries():
                             "link": event["link"]
                         })
 
-        # Grafico della serie storica
+        # creazione del grafico della serie storica
         line = alt.Chart(aggregated_data).mark_line().encode(
             x=alt.X("Year_Month:T", title="Anno e Mese"),
             y=alt.Y("Total Number of Dead and Missing:Q", title="Somma mensile del numero totale di morti e dispersi"),
@@ -337,7 +371,7 @@ def timeseries():
             ]
         )
 
-        # Selettore per il tooltip interattivo
+        # selettore per la barra verticale interattiva
         nearest = alt.selection_point(
             nearest=True, on="pointerover", fields=["Year_Month"], empty="none"
         )
@@ -370,7 +404,7 @@ def timeseries():
             ]
         ).transform_filter(nearest)
 
-        # Aggiunta delle linee verticali tratteggiate per eventi storici
+        # aggiunta delle linee verticali tratteggiate per eventi storici
         if event_annotations:
             event_df = pd.DataFrame(event_annotations)
             event_rules = alt.Chart(event_df).mark_rule(strokeDash=[4, 4], color="darkgray", strokeWidth=2).encode(
@@ -385,16 +419,16 @@ def timeseries():
         else:
             timeseries = alt.layer(line, selectors, points, rules, text).properties(width=600, height=400)
 
-        st.altair_chart(timeseries, use_container_width=True)
+        st.altair_chart(timeseries, use_container_width=True)  # visualizzazione del grafico
 
-        # Aggiunta del link agli eventi storici
+        # aggiunta del link agli eventi storici correlati
         if event_links:
             st.markdown("#### Fatti di cronaca nera correlati:")
             for event in event_links:
                 st.markdown(f"📅 **{event['date']}** | 📍 **{event['region']}** |  **{event['total_deaths']} tra morti e dispersi** - [{event['title']}]({event['link']})"
                             , unsafe_allow_html=True)
     else:
-        st.warning("Nessuna regione selezionata.")
+        st.warning("Nessuna regione selezionata.")  # messaggio di avviso se non ci sono dati selezionati
 
     st.markdown(
     "Dall'analisi dei dati emerge chiaramente come le regioni del **Mediterraneo, del Nord America e del Nord Africa** "
@@ -408,7 +442,7 @@ def timeseries():
 #2. Distribuzione delle variabili categoriche
 def barchart():
     st.markdown("---")
-    st.write("## Distribuzione delle variabili categoriche")
+    st.write("## Distribuzione delle variabili categoriali")
 
     st.markdown(
     "Questa sezione permette di analizzare la distribuzione delle variabili categoriali presenti nel dataset, "
@@ -416,20 +450,25 @@ def barchart():
     "Ciò consente di individuare quali regioni, cause di morte o rotte migratorie siano maggiormente rappresentate nei dati."
     )
 
+    # elenco delle variabili categoriche disponibili per la selezione
     columns = ['Region', 'Cause of Death', 'Migrantion route']
 
+    # selezione della variabile da analizzare
     selected_variable = st.pills(
         'Seleziona una variabile per visualizzare la distribuzione',
         columns,
         default="Region"
     )
 
+    # verifica che sia stata selezionata una variabile
     if not selected_variable:
         st.warning("Seleziona una variabile per visualizzare la distribuzione.")
         return
     
-    filtered_data1 = data[[selected_variable]].drop_nans()
+    # filtraggio dei dati rimuovendo i valori mancanti
+    filtered_data1 = data[[selected_variable]].drop_nans().drop_nulls()
 
+    # definizione dell'interazione al passaggio del mouse
     highlight = alt.selection_point(
         name="highlight",
         on="pointerover",
@@ -439,6 +478,7 @@ def barchart():
         clear="mouseout"
     )
 
+    # definizione dell'interazione al click
     click = alt.selection_point(
         name="click",
         on="click",
@@ -447,26 +487,29 @@ def barchart():
         clear="mouseout"
     )
 
+    # cambio colore quando l'elemento viene evidenziato
     change_color = alt.condition(
         highlight,
         alt.value("yellow"),
         alt.value("blue")
     )
 
+    # modifica dell'opacità in base all'elemento selezionato
     change_opacity = alt.condition(
         click,
         alt.value(1),
         alt.value(0.4)
     )
 
+    # creazione dell'istogramma con Altair
     histogram = (
         alt.Chart(filtered_data1)
-        .mark_bar(stroke='lightgray', cursor="pointer")
+        .mark_bar(stroke='lightgray', cursor="pointer")  # barre con bordo grigio e cursore a forma di puntatore
         .encode(
-            y=alt.Y(f'{selected_variable}:N', sort='-x', title=selected_variable),
-            x=alt.X('count()', title='Frequenza dell\'osservazione nel dataset'),
-            color=change_color,
-            opacity=change_opacity
+            y=alt.Y(f'{selected_variable}:N', sort='-x', title=selected_variable),  # asse y con le categorie ordinate
+            x=alt.X('count()', title='Frequenza dell\'osservazione nel dataset'),  # asse x con la frequenza
+            color=change_color,  # cambio colore al passaggio del mouse
+            opacity=change_opacity  # cambio opacità al click
         )
         .properties(
             width=600,
@@ -478,6 +521,7 @@ def barchart():
         )
     )
 
+    # visualizzazione del grafico in Streamlit
     st.altair_chart(histogram, use_container_width=True)
 
     st.markdown(
@@ -507,18 +551,20 @@ def piechart():
     "le aree maggiormente colpite dal fenomeno."
     )
 
+    # funzione per preparare i dati in un formato adatto alla visualizzazione con Altair
     def prepare_data_for_alt(df):
-        regions = df['Region'].unique()
-        chart_data = []
+        regions = df['Region'].unique()  # elenco delle regioni uniche nel dataset
+        chart_data = []  # lista per raccogliere i dati trasformati
 
         for region in regions:
-            regional_data = df[df['Region'] == region]
-            total_deaths = regional_data['Total Number of Dead and Missing'].sum()
-            male_deaths = regional_data['Number of Males'].sum()
-            female_deaths = regional_data['Number of Females'].sum()
-            children_deaths = regional_data['Number of Children'].sum()
-            unknown_deaths = total_deaths - (male_deaths + female_deaths + children_deaths)
+            regional_data = df[df['Region'] == region]  # filtro dei dati per regione
+            total_deaths = regional_data['Total Number of Dead and Missing'].sum()  # somma totale delle vittime
+            male_deaths = regional_data['Number of Males'].sum()  # numero di vittime maschili
+            female_deaths = regional_data['Number of Females'].sum()  # numero di vittime femminili
+            children_deaths = regional_data['Number of Children'].sum()  # numero di vittime minori di 18 anni
+            unknown_deaths = total_deaths - (male_deaths + female_deaths + children_deaths)  # calcolo delle vittime di genere sconosciuto
 
+            # aggiunta dei dati alla lista in formato strutturato
             chart_data.extend([
                 {"Region": region, "Category": "Male", "Count": male_deaths, "Total": total_deaths},
                 {"Region": region, "Category": "Female", "Count": female_deaths, "Total": total_deaths},
@@ -526,49 +572,54 @@ def piechart():
                 {"Region": region, "Category": "Unknown", "Count": unknown_deaths, "Total": total_deaths}
             ])
         
-        return pd.DataFrame(chart_data)
+        return pd.DataFrame(chart_data)  # restituisce i dati trasformati come dataframe
 
-    altair_data = prepare_data_for_alt(datapd)
-    total_deaths_order = altair_data.groupby("Region")["Total"].max().sort_values(ascending=False).index.tolist()
+    altair_data = prepare_data_for_alt(datapd)  # applicazione della funzione ai dati
+    total_deaths_order = altair_data.groupby("Region")["Total"].max().sort_values(ascending=False).index.tolist()  # ordinamento delle regioni in base al numero di vittime
     
+    # creazione del grafico di base con aggregazione dei dati
     base_chart = alt.Chart(altair_data).transform_aggregate(
         total="sum(Count)", groupby=["Region", "Category", "Total"]
     )
 
+    # creazione del grafico a torta con segmenti colorati per categoria
     base_pie = (
         base_chart.mark_arc(innerRadius=50, outerRadius=80, stroke="white", strokeWidth=0.5).encode(
-            theta=alt.Theta("total:Q", stack=True),
-            color=alt.Color("Category:N", scale=alt.Scale(scheme="category10"), title="Categoria"),
-            tooltip=["Region:N", "Category:N", alt.Tooltip("total:Q", title="Numero")],
+            theta=alt.Theta("total:Q", stack=True),  # angolo dei segmenti basato sul numero di vittime
+            color=alt.Color("Category:N", scale=alt.Scale(scheme="category10"), title="Categoria"),  # colore in base alla categoria
+            tooltip=["Region:N", "Category:N", alt.Tooltip("total:Q", title="Numero")],  # tooltip con informazioni dettagliate
         )
     )
 
+    # aggiunta delle etichette numeriche all'interno dei segmenti del grafico (non funzionano bene)
     text_pie = (
        base_chart.mark_text(size=12, color="white").encode(
            theta=alt.Theta("total:Q", stack=True),
            text=alt.Text("total:Q", format=".0f"),
-           radius=alt.value(65),  # sposta le etichette
-
+           radius=alt.value(65),  # sposta le etichette verso l'interno
        )
     )
 
+    # aggiunta del numero totale di vittime al centro del grafico
     text_total = (
         base_chart.mark_text(size=18, fontWeight="bold").encode(
             text=alt.Text("Total:Q", format=".0f"),
             color=alt.value("white")
-        ).transform_filter(alt.datum.Category == "Male")
+        ).transform_filter(alt.datum.Category == "Male")  # applica il filtro per evitare ripetizioni
     )
 
+    # combinazione del grafico a torta con il numero totale di vittime
     chart = (
-        base_pie  + text_total
+        base_pie + text_total
     ).properties(
         width=150,
         height=150
     ).facet(
-        facet=alt.Facet("Region:N", title="Regione", sort=total_deaths_order),
-        columns=4
+        facet=alt.Facet("Region:N", title="Regione", sort=total_deaths_order),  # suddivisione del grafico per regione
+        columns=4  # numero di colonne per la visualizzazione
     )
 
+    # visualizzazione del grafico in Streamlit
     st.altair_chart(chart, use_container_width=True)
 
     st.markdown(
@@ -603,11 +654,11 @@ def stackedbarchart():
     "aree geografiche."
     )
 
-    # Calcolo della percentuale
+    # calcolo della percentuale di ciascuna causa di morte per regione
     datapd_counts = datapd.groupby(['Region', 'Cause of Death']).size().reset_index(name='Count')
     datapd_counts['Percent'] = datapd_counts.groupby('Region')['Count'].transform(lambda x: x / x.sum() * 100)
 
-    # Definizione della mappatura colore personalizzata per ogni causa di morte
+    # definizione della mappatura colore personalizzata per ogni causa di morte
     color_mapping = {
         "Drowning": "#392F5A",
         "Vehicle accident / death linked to hazardous transport": "#FF8811",
@@ -618,10 +669,10 @@ def stackedbarchart():
         "Accidental death": "#664712"
     }
 
-    # Creazione della scala dei colori basata sulla mappatura
+    # creazione della scala dei colori basata sulla mappatura
     color_scale = alt.Scale(domain=list(color_mapping.keys()), range=list(color_mapping.values()))
 
-    # Selezione delle regioni (max 14)
+    # selezione delle regioni da analizzare (massimo 14)
     selected_regions = st.multiselect(
         'Seleziona le regioni da includere (max 14):',
         options=datapd_counts['Region'].unique(),
@@ -629,24 +680,25 @@ def stackedbarchart():
         max_selections=14
     )
 
-    # Filtra i dati in base alle regioni selezionate
+    # filtro dei dati in base alle regioni selezionate
     filtered_data = datapd_counts[datapd_counts['Region'].isin(selected_regions)]
 
-    # Selezione della causa di morte tramite st.pills
+    # selezione della causa di morte per l'ordinamento tramite pulsanti
     selected_cause = st.pills(
         "Seleziona la causa di morte per ordinare le regioni:",
         options=["None"] + datapd_counts['Cause of Death'].unique().tolist(),
         default="None"
     )
 
+    # verifica se è stata selezionata una causa di morte
     if not selected_cause:
         st.warning("Devi selezionare una causa di morte per procedere.")
-        return  # Esce dalla funzione se la selezione è vuota
+        return  # esce dalla funzione se la selezione è vuota
 
     if not filtered_data.empty:
-        # Ordina solo se una causa di morte è selezionata
+        # ordinamento solo se una causa di morte è selezionata
         if selected_cause != "None":
-            # Aggiungi tutte le regioni con percentuale 0 per la causa selezionata
+            # aggiunta delle regioni con percentuale 0 per la causa selezionata
             all_regions = pd.DataFrame({
                 'Region': selected_regions,
                 'Cause of Death': selected_cause,
@@ -656,23 +708,24 @@ def stackedbarchart():
             filtered_data = pd.concat([filtered_data, all_regions], ignore_index=True)
             filtered_data = filtered_data.drop_duplicates(subset=['Region', 'Cause of Death'], keep='first')
 
+            # ordinamento delle regioni in base alla percentuale della causa selezionata
             ordered_regions = (
                 filtered_data[filtered_data['Cause of Death'] == selected_cause]
                 .sort_values(by='Percent', ascending=False)['Region']
                 .tolist()
             )
 
-            # Mantieni l'ordine delle regioni
+            # mantenimento dell'ordine delle regioni
             filtered_data['Region'] = pd.Categorical(filtered_data['Region'], categories=ordered_regions, ordered=True)
         else:
-            # Se "None", lascia l'ordine normale
+            # se "None", lascia l'ordine normale
             ordered_regions = filtered_data['Region'].unique().tolist()
 
         # assegna un valore numerico per l'ordinamento della causa di morte
         filtered_data = filtered_data.copy()  # evita il warning di pandas
         filtered_data.loc[:, "sort_order"] = filtered_data["Cause of Death"].apply(lambda x: 0 if x == selected_cause else 1)
 
-        # Creazione del grafico a barre impilate con colori espliciti
+        # creazione del grafico a barre impilate con colori espliciti
         chart = alt.Chart(filtered_data).mark_bar().encode(
             y=alt.X('Region:N', title='Regione', sort=ordered_regions),
             x=alt.Y('Percent:Q', title='Percentuale', stack="normalize"),
@@ -689,10 +742,10 @@ def stackedbarchart():
             title=f"Percentuale delle Cause di Morte per Regione (ordinato per '{selected_cause}')"
         )
 
-        # Mostra il grafico
+        # visualizzazione del grafico in Streamlit
         st.altair_chart(chart, use_container_width=True)
     else:
-        st.warning("Nessuna regione selezionata.")
+        st.warning("Nessuna regione selezionata.")  # messaggio di avviso se non ci sono regioni selezionate
 
     st.markdown(
     "Ordinando il grafico in base alla causa di morte **Drowning (annegamento)**, emergono in prima posizione le regioni del "
@@ -712,7 +765,6 @@ def stackedbarchart():
 # ANALISI GEOSPAZIALE
 #1. Mappa dei punti sulla base delle coordinate
 def points_map(map_style):
-    st.markdown("---")
     st.write("## Mappa dei punti sulla base delle coordinate")
 
     st.write("""
@@ -721,57 +773,59 @@ def points_map(map_style):
     eventi con un maggior numero di vittime sono visualizzati con punti più grandi.
     """)
 
-    #pulizia del DataFrame eliminando righe con NaN in 'Coordinates', creazione copia
+    # pulizia del dataframe eliminando righe con valori NaN nella colonna 'Coordinates' e creazione di una copia
     datapd_cleaned = datapd.dropna(subset=["Coordinates"]).copy()
 
-    #conversione delle coordinate in liste di float (invertendo ordine lat/lon)
+    # conversione delle coordinate in liste di float, invertendo l'ordine latitudine/longitudine
     datapd_cleaned["Coordinates"] = datapd_cleaned["Coordinates"].apply(
-        lambda x: [float(coord.strip()) for coord in x.split(",")][::-1]  # Inverte l'ordine lat/lon
+        lambda x: [float(coord.strip()) for coord in x.split(",")][::-1]  # inverte l'ordine lat/lon
     )
 
-    #calcolo del raggio usando la radice quadrata
+    # calcolo del raggio dei punti sulla base della radice quadrata del numero totale di morti e dispersi
     datapd_cleaned["radius"] = datapd_cleaned["Total Number of Dead and Missing"].apply(
         lambda x: math.sqrt(x)
     )
 
+    # separazione delle coordinate in colonne distinte per latitudine e longitudine
     datapd_cleaned[["lng", "lat"]] = pd.DataFrame(datapd_cleaned["Coordinates"].tolist(), index=datapd_cleaned.index)
 
-    #creazione del layer Pydeck
+    # creazione del layer di visualizzazione con Pydeck
     layer = pdk.Layer(
         "ScatterplotLayer",
         datapd_cleaned,
-        pickable=True,
-        opacity=1,
-        stroked=True,
-        filled=True,
-        radius_scale=1000,  # amplifica il raggio calcolato
-        radius_min_pixels=1.5,
-        radius_max_pixels=1000,
-        line_width_min_pixels=1,
-        get_position="Coordinates",  # ordine corretto: [longitudine, latitudine]
-        get_radius="radius",
-        get_fill_color=[204, 0, 0],
-        get_line_color=[0, 0, 0],
-        aggregation=pdk.types.String("SUM")
+        pickable=True,  # abilita il tooltip interattivo
+        opacity=1,  # opacità completa dei punti
+        stroked=True,  # bordo visibile sui punti
+        filled=True,  # punti pieni
+        radius_scale=1000,  # scala del raggio per migliorare la leggibilità
+        radius_min_pixels=1.5,  # dimensione minima dei punti
+        radius_max_pixels=1000,  # dimensione massima dei punti
+        line_width_min_pixels=1,  # spessore minimo del bordo dei punti
+        get_position="Coordinates",  # specifica che i dati delle coordinate saranno usati per posizionare i punti
+        get_radius="radius",  # dimensione del punto basata sulla variabile 'radius'
+        get_fill_color=[204, 0, 0],  # colore dei punti rosso
+        get_line_color=[0, 0, 0],  # bordo dei punti nero
+        aggregation=pdk.types.String("SUM")  # metodo di aggregazione
     )
 
-    #configurazione della vista iniziale della mappa
-    view = pdk.data_utils.compute_view(datapd_cleaned[["lng", "lat"]])
-    view.zoom = 1  #maggiore dettaglio
-    view.latitude=30
-    view.longitude=-8
-    view.max_zoom=8
-    view.min_zoom=0.7
+    # configurazione della vista iniziale della mappa
+    view = pdk.data_utils.compute_view(datapd_cleaned[["lng", "lat"]])  # calcola la vista ottimale basata sui dati
+    view.zoom = 1  # livello di zoom iniziale
+    view.latitude = 30  # latitudine centrale della vista
+    view.longitude = -8  # longitudine centrale della vista
+    view.max_zoom = 8  # massimo livello di zoom consentito
+    view.min_zoom = 0.7  # minimo livello di zoom consentito
 
-    #configurazione della mappa Pydeck
+    # configurazione della mappa Pydeck con il layer di punti
     map_deck = pdk.Deck(
-    layers=[layer],
-    initial_view_state=view,
-    tooltip={"html": "Totale di morti e dispersi: {Total Number of Dead and Missing}<br>Data della tragedia: {Incident Date}"},
-    map_provider="mapbox",
-    map_style=map_style
+        layers=[layer],  # aggiunge il layer dei punti
+        initial_view_state=view,  # imposta la vista iniziale della mappa
+        tooltip={"html": "Totale di morti e dispersi: {Total Number of Dead and Missing}<br>Data della tragedia: {Incident Date}"},  # tooltip con dati interattivi
+        map_provider="mapbox",  # provider della mappa
+        map_style=map_style  # stile della mappa (politica o satellitare)
     )
 
+    # visualizzazione della mappa in Streamlit
     st.pydeck_chart(map_deck)
 
     st.write("""
@@ -802,20 +856,20 @@ def heatmap(datapd_cleaned, map_style):
     di esplorare l’impatto della crisi migratoria sia a livello globale che locale.
     """)
 
-    # Calcolo dei pesi (amplificati per una maggiore visibilità)
+    # calcolo dei pesi per la heatmap, normalizzando rispetto al valore massimo
     datapd_cleaned["weight"] = (
         datapd_cleaned["Total Number of Dead and Missing"] / datapd_cleaned["Total Number of Dead and Missing"].max()
     ) * 100
 
-    # Configuro la vista iniziale della mappa
-    view = pdk.data_utils.compute_view(datapd_cleaned[["lng", "lat"]])
-    view.zoom = 1.4 
-    view.latitude = 30
-    view.longitude = -43
-    view.max_zoom=8
-    view.min_zoom=0.7
+    # configurazione della vista iniziale della mappa
+    view = pdk.data_utils.compute_view(datapd_cleaned[["lng", "lat"]])  # calcola una vista ottimale basata sui dati
+    view.zoom = 1.4  # livello di zoom iniziale
+    view.latitude = 30  # latitudine centrale della vista
+    view.longitude = -43  # longitudine centrale della vista
+    view.max_zoom = 8  # massimo livello di zoom consentito
+    view.min_zoom = 0.7  # minimo livello di zoom consentito
 
-    # Definizione della scala di colori IDENTICA alla heatmap
+    # definizione della scala di colori per la heatmap
     COLOR_BREWER_SCALE5 = [
         [230, 0, 0],     
         [204, 0, 0],     
@@ -828,63 +882,63 @@ def heatmap(datapd_cleaned, map_style):
         [26, 0, 0]
     ]
 
-    # Configura il layer Heatmap
+    # configurazione del layer della heatmap con Pydeck
     heatmap_layer = pdk.Layer(
         "HeatmapLayer",
         data=datapd_cleaned,
-        opacity=0.9,
-        get_position=["lng", "lat"],  # Coordinate lat/lon
-        aggregation=pdk.types.String("SUM"),  # Aggregazione basata sulla somma
-        color_range=COLOR_BREWER_SCALE5,  # Usa la lista di colori senza NumPy
-        threshold=0.07,  # Soglia abbassata per intensificare la visibilità
-        get_weight="weight",  # Peso per ogni punto
-        pickable=True,  # Abilita il tooltip per ogni punto
-        stroked=True  
+        opacity=0.9,  # opacità del layer
+        get_position=["lng", "lat"],  # coordinate lat/lon
+        aggregation=pdk.types.String("SUM"),  # aggregazione basata sulla somma dei valori
+        color_range=COLOR_BREWER_SCALE5,  # utilizza la lista di colori predefinita
+        threshold=0.07,  # soglia abbassata per rendere la heatmap più visibile
+        get_weight="weight",  # peso dei punti in base ai dati
+        pickable=True,  # abilita il tooltip per ogni punto
+        stroked=True  # bordo visibile intorno ai punti
     )
 
-    # Crea la mappa Pydeck
+    # creazione della mappa Pydeck
     heatmap_map = pdk.Deck(
-        layers=[heatmap_layer],
-        initial_view_state=view,
-        map_provider="mapbox",
-        map_style=map_style,
-        tooltip={"text": "Heatmap basata sui pesi calcolati"},
+        layers=[heatmap_layer],  # aggiunta del layer della heatmap
+        initial_view_state=view,  # impostazione della vista iniziale della mappa
+        map_provider="mapbox",  # provider della mappa
+        map_style=map_style,  # stile della mappa (politica o satellitare)
+        tooltip={"text": "Heatmap basata sui pesi calcolati"}  # tooltip interattivo
     )
 
-    # Layout con colonna per Heatmap + Colorbar a fianco
-    col1, col2 = st.columns([5, 1])  # Più spazio alla mappa
+    # layout con colonna per la heatmap e colorbar a fianco
+    col1, col2 = st.columns([5, 1])  # disposizione a due colonne, con più spazio alla mappa
 
     with col1:
-        st.pydeck_chart(heatmap_map, use_container_width=True)
+        st.pydeck_chart(heatmap_map, use_container_width=True)  # visualizzazione della mappa in Streamlit
 
     with col2:
-        # **Creazione della colorbar**
-        fig, ax = plt.subplots(figsize=(0.6, 8))  # Aumentata altezza per allinearla alla mappa
+        # creazione della colorbar con Matplotlib
+        fig, ax = plt.subplots(figsize=(0.6, 8))  # altezza aumentata per allinearla alla mappa
         cmap = plt.matplotlib.colors.LinearSegmentedColormap.from_list("custom_cmap", np.array(COLOR_BREWER_SCALE5) / 255)
-        norm = plt.Normalize(vmin=0, vmax=100)  # Normalizza tra 0 e 100
+        norm = plt.Normalize(vmin=0, vmax=100)  # normalizzazione tra 0 e 100
 
-        # Crea la barra dei colori
+        # creazione della barra dei colori
         cb = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), cax=ax, orientation='vertical')
-        cb.set_label("Densità relativa di morti e dispersi", fontsize=10, labelpad=10, color="white")
+        cb.set_label("Densità relativa di morti e dispersi", fontsize=10, labelpad=10, color="white")  # etichetta della colorbar
 
-        # Imposta il colore del testo e dei numeri in bianco
+        # impostazione del colore del testo e dei numeri in bianco
         cb.ax.yaxis.set_tick_params(color='white')
         cb.ax.yaxis.label.set_color('white')
         plt.setp(ax.yaxis.get_ticklabels(), color="white")
 
-        # **Rendi i bordi della colorbar bianchi**
+        # rende i bordi della colorbar bianchi
         cb.outline.set_edgecolor("white")
 
-        # **Allineamento della barra alla mappa**
-        ax.set_aspect(0.35)  # Proporzione verticale migliorata
-        plt.subplots_adjust(left=0.4, right=0.6, top=1, bottom=0)  # Rimuove spazio in eccesso
+        # allineamento della colorbar alla mappa
+        ax.set_aspect(0.35)  # proporzione verticale migliorata
+        plt.subplots_adjust(left=0.4, right=0.6, top=1, bottom=0)  # rimozione spazio in eccesso
 
-        # Salva l'immagine in un buffer
+        # salvataggio dell'immagine in un buffer
         buf = io.BytesIO()
         plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
         buf.seek(0)
-        
-        # Mostra la colorbar in Streamlit
+
+        # visualizzazione della colorbar in Streamlit
         st.image(buf, use_container_width=True)
     
     st.write("""
@@ -914,7 +968,7 @@ def points_map_by_cat(datapd_cleaned, map_style):
     seguite dai migranti e le zone in cui gli incidenti avvengono con maggiore frequenza.
     """)
 
-    #opzioni per la selezione della categoria
+    # opzioni disponibili per la selezione della categoria
     categories = ["Cause of Death", "Migrantion route"]
     selected_category = st.pills(
         "Seleziona una categoria per colorare i punti sulla mappa",
@@ -927,73 +981,74 @@ def points_map_by_cat(datapd_cleaned, map_style):
         st.warning("Seleziona una categoria per procedere.")
         return
     
-    # rimuoviamo eventuali righe con NaN nella categoria selezionata
+    # rimozione delle righe con valori NaN nella categoria selezionata
     datapd_filtered = datapd_cleaned.dropna(subset=[selected_category]).copy()
 
-    # mappatura dei colori univoci per la categoria selezionata
+    # creazione di una mappatura colori per le categorie uniche presenti nei dati
     unique_categories = datapd_filtered[selected_category].unique()
     color_palette = [
-    [255, 0, 0],    # Rosso
-    [0, 255, 0],    # Verde
-    [255, 255, 0],  # Giallo
-    [255, 0, 255],  # Magenta
-    [0, 255, 255],  # Ciano
-    [128, 0, 0],    # Rosso scuro
-    [139, 69, 19],  # Marrone cioccolato
-    [128, 128, 0],  # Verde oliva
-    [255, 165, 0],  # Arancione
-    [75, 0, 130],   # Indaco
-    [255, 192, 203],# Rosa
-    [173, 216, 230],# Azzurro chiaro
-    [32, 145, 134], # Turchese
-    [255, 0, 221],  # Fucsia
-    [127, 255, 0],  # Verde lime
-    [220, 20, 60],  # Cremisi
-    [0, 206, 209],  # Turchese scuro
-    [138, 43, 226], # Blu violetto
-    [255, 215, 0],  # Oro
-    [0, 0, 255],    # Blu
-    [0, 0, 128],    # Blu scuro
-    [0, 128, 0],    # Verde scuro
+        [255, 0, 0],    # rosso
+        [0, 255, 0],    # verde
+        [255, 255, 0],  # giallo
+        [255, 0, 255],  # magenta
+        [0, 255, 255],  # ciano
+        [128, 0, 0],    # rosso scuro
+        [139, 69, 19],  # marrone cioccolato
+        [128, 128, 0],  # verde oliva
+        [255, 165, 0],  # arancione
+        [75, 0, 130],   # indaco
+        [255, 192, 203],# rosa
+        [173, 216, 230],# azzurro chiaro
+        [32, 145, 134], # turchese
+        [255, 0, 221],  # fucsia
+        [127, 255, 0],  # verde lime
+        [220, 20, 60],  # cremisi
+        [0, 206, 209],  # turchese scuro
+        [138, 43, 226], # blu violetto
+        [255, 215, 0],  # oro
+        [0, 0, 255],    # blu
+        [0, 0, 128],    # blu scuro
+        [0, 128, 0],    # verde scuro
     ]
  
+    # associazione di un colore a ogni categoria unica
     color_mapping = {category: color_palette[i % len(color_palette)] for i, category in enumerate(unique_categories)}
     datapd_filtered["color"] = datapd_filtered[selected_category].map(color_mapping)
 
-    # creazione del layer Pydeck
+    # creazione del layer Pydeck per visualizzare i punti sulla mappa
     layer = pdk.Layer(
         "ScatterplotLayer",
         datapd_filtered,
-        pickable=True,
-        opacity=1,
-        stroked=True,
-        filled=True,
-        radius_scale=1000,
-        radius_min_pixels=1.5,
-        radius_max_pixels=1000,
-        line_width_min_pixels=1,
-        get_position=["lng", "lat"],  #lng e lat
-        get_radius="radius",
-        get_fill_color="color",
-        get_line_color=[0, 0, 0],
+        pickable=True,  # abilita il tooltip interattivo
+        opacity=1,  # opacità dei punti
+        stroked=True,  # bordo visibile intorno ai punti
+        filled=True,  # punti pieni
+        radius_scale=1000,  # scala del raggio per migliorare la leggibilità
+        radius_min_pixels=1.5,  # dimensione minima dei punti
+        radius_max_pixels=1000,  # dimensione massima dei punti
+        line_width_min_pixels=1,  # spessore minimo del bordo dei punti
+        get_position=["lng", "lat"],  # utilizzo delle coordinate lat/lon
+        get_radius="radius",  # dimensione del punto basata sulla variabile 'radius'
+        get_fill_color="color",  # colore assegnato in base alla categoria selezionata
+        get_line_color=[0, 0, 0],  # bordo dei punti nero
     )
 
     # configurazione della vista iniziale della mappa
     view = pdk.ViewState(latitude=30, longitude=-8, zoom=1, max_zoom=8, min_zoom=0.7)
 
-    # configurazione della mappa Pydeck
+    # creazione della mappa Pydeck con il layer dei punti
     map_deck = pdk.Deck(
-        layers=[layer],
-        initial_view_state=view,
+        layers=[layer],  # aggiunta del layer dei punti
+        initial_view_state=view,  # impostazione della vista iniziale della mappa
         tooltip={
             "html": f"{selected_category}: {{{selected_category}}}<br>Totale morti e dispersi: {{Total Number of Dead and Missing}}",
             "style": {"color": "white"},
         },
-        map_provider="mapbox",
-        map_style=map_style
+        map_provider="mapbox",  # provider della mappa
+        map_style=map_style  # stile della mappa (politica o satellitare)
     )
 
-    # mostra la mappa
+    # visualizzazione della mappa in Streamlit
     st.pydeck_chart(map_deck)
 
     # aggiunta della legenda con i colori associati alle categorie
@@ -1011,7 +1066,7 @@ def points_map_by_cat(datapd_cleaned, map_style):
         """
     legend_html += "</div>"
 
-    st.markdown(legend_html, unsafe_allow_html=True)
+    st.markdown(legend_html, unsafe_allow_html=True)  # visualizzazione della legenda in Streamlit
 
     st.write("""
     Come evidenziato anche nel grafico a barre sovrapposte, la causa di morte più frequente nelle tragedie migratorie è l’annegamento (**Drowning**). 
@@ -1031,7 +1086,6 @@ def points_map_by_cat(datapd_cleaned, map_style):
 # ANALISI DEI GRUPPI
 #1. Gruppo del mediterraneo
 def mediterranean_group(map_style):
-    st.markdown("---")
     st.write("### Gruppo dei punti nel Mediterraneo")
 
     st.markdown("""
@@ -1040,49 +1094,51 @@ def mediterranean_group(map_style):
     La mappa seguente evidenzia la distribuzione degli eventi in questa regione, concentrati principalmente nel Mediterraneo centrale e orientale.
     """)
 
-    # Filtriamo il dataframe per la regione "Mediterranean"
+    # filtriamo il dataframe per la regione "Mediterranean", rimuovendo righe con valori NaN nelle coordinate
     datapd_med = datapd[datapd["Region"] == "Mediterranean"].dropna(subset=["Coordinates"]).copy()
 
-    # Conversione delle coordinate in liste di float e creazione di colonne separate per lat/lon
+    # conversione delle coordinate in liste di float, invertendo l'ordine latitudine/longitudine
     datapd_med["Coordinates"] = datapd_med["Coordinates"].apply(
-        lambda x: [float(coord.strip()) for coord in x.split(",")][::-1]  # Invertiamo l'ordine lat/lon
+        lambda x: [float(coord.strip()) for coord in x.split(",")][::-1]  # invertiamo l'ordine lat/lon
     )
 
+    # calcolo del raggio dei punti sulla base della radice quadrata del numero totale di morti e dispersi
     datapd_med["radius"] = datapd_med["Total Number of Dead and Missing"].apply(
         lambda x: math.sqrt(x)
     )
 
+    # separazione delle coordinate in colonne distinte per latitudine e longitudine
     datapd_med[["lng", "lat"]] = pd.DataFrame(datapd_med["Coordinates"].tolist(), index=datapd_med.index)
 
-    # Creiamo un array numpy con tutte le coordinate aggiornate
+    # creazione di un array numpy con tutte le coordinate aggiornate
     points = np.array(datapd_med[["lng", "lat"]])
 
-    # Calcoliamo l'inviluppo convesso (convex hull)
+    # calcolo dell'inviluppo convesso (convex hull) per delineare un poligono attorno ai punti
     hull = ConvexHull(points)
     hull_coordinates = [points[i].tolist() for i in hull.vertices]
 
-    # Chiudiamo il poligono tornando al primo punto
+    # chiudiamo il poligono tornando al primo punto
     hull_coordinates.append(hull_coordinates[0])
 
-    # Creiamo il layer con i punti
+    # creazione del layer Pydeck per visualizzare i punti sulla mappa
     points_layer = pdk.Layer(
         "ScatterplotLayer",
         datapd_med,
-        pickable=True,
-        opacity=1,
-        stroked=True,
-        filled=True,
-        radius_scale=1000,  # Amplifica il raggio calcolato
-        radius_min_pixels=2,
-        radius_max_pixels=1000,
-        line_width_min_pixels=1,
-        get_position="Coordinates",
-        get_radius="radius",
-        get_fill_color=[204, 0, 0],
-        get_line_color=[0, 0, 0],
+        pickable=True,  # abilita il tooltip interattivo
+        opacity=1,  # opacità completa dei punti
+        stroked=True,  # bordo visibile intorno ai punti
+        filled=True,  # punti pieni
+        radius_scale=1000,  # scala del raggio per migliorare la leggibilità
+        radius_min_pixels=2,  # dimensione minima dei punti
+        radius_max_pixels=1000,  # dimensione massima dei punti
+        line_width_min_pixels=1,  # spessore minimo del bordo dei punti
+        get_position="Coordinates",  # utilizzo delle coordinate lat/lon
+        get_radius="radius",  # dimensione del punto basata sulla variabile 'radius'
+        get_fill_color=[204, 0, 0],  # colore dei punti rosso
+        get_line_color=[0, 0, 0],  # bordo dei punti nero
     )
 
-    # Creiamo il layer con il poligono che racchiude i punti
+    # creazione del layer Pydeck con il poligono convesso che racchiude i punti
     polygon_data = [
         {"polygon": hull_coordinates, "name": "Mediterranean Convex Hull"}
     ]
@@ -1090,27 +1146,27 @@ def mediterranean_group(map_style):
     polygon_layer = pdk.Layer(
         "PolygonLayer",
         polygon_data,
-        stroked=True,
-        filled=True,
-        line_width_min_pixels=2,
-        get_polygon="polygon",
-        get_fill_color=[255, 255, 255, 150],  # Bianco semi-trasparente
-        get_line_color=[255, 255, 255],  # Bordo bianco
+        stroked=True,  # bordo visibile del poligono
+        filled=True,  # riempimento del poligono
+        line_width_min_pixels=2,  # spessore minimo del bordo
+        get_polygon="polygon",  # specifica che i dati delle coordinate saranno usati per creare il poligono
+        get_fill_color=[255, 255, 255, 150],  # colore di riempimento bianco semi-trasparente
+        get_line_color=[255, 255, 255],  # bordo bianco
     )
 
-    # Configurazione della vista iniziale della mappa
+    # configurazione della vista iniziale della mappa
     view = pdk.ViewState(latitude=37, longitude=13.7, zoom=3.4, min_zoom=3.1, max_zoom=8)
 
-    # Creazione della mappa Pydeck con entrambi i layer
+    # creazione della mappa Pydeck con entrambi i layer (punti e poligono)
     map_deck = pdk.Deck(
-        layers=[polygon_layer, points_layer],  # Sovrapposizione dei layer
-        initial_view_state=view,
-        tooltip={"html": "Morti e dispersi: {Total Number of Dead and Missing}<br>Data: {Incident Date}"},
-        map_provider="mapbox",
-        map_style=map_style
+        layers=[polygon_layer, points_layer],  # sovrapposizione dei layer
+        initial_view_state=view,  # impostazione della vista iniziale della mappa
+        tooltip={"html": "Morti e dispersi: {Total Number of Dead and Missing}<br>Data: {Incident Date}"},  # tooltip interattivo
+        map_provider="mapbox",  # provider della mappa
+        map_style=map_style  # stile della mappa (politica o satellitare)
     )
 
-    # Mostriamo la mappa
+    # visualizzazione della mappa in Streamlit
     st.pydeck_chart(map_deck)
 
     st.markdown("""
@@ -1139,29 +1195,31 @@ def mexico_us_border_group(map_style):
     con una forte concentrazione di eventi nelle zone desertiche dell’Arizona, del Texas e della California.
     """)
 
-    # Filtriamo il dataframe per le regioni North America e Central America
+    # filtriamo il dataframe per le regioni "North America" e "Central America", rimuovendo righe con valori NaN nelle coordinate
     datapd_border = datapd[datapd["Region"].isin(["North America", "Central America"])].dropna(subset=["Coordinates"]).copy()
 
-    # Conversione delle coordinate in liste di float e creazione di colonne separate per lat/lon
+    # conversione delle coordinate in liste di float, invertendo l'ordine latitudine/longitudine
     datapd_border["Coordinates"] = datapd_border["Coordinates"].apply(
-        lambda x: [float(coord.strip()) for coord in x.split(",")][::-1]  # Invertiamo l'ordine lat/lon
+        lambda x: [float(coord.strip()) for coord in x.split(",")][::-1]  # invertiamo l'ordine lat/lon
     )
 
+    # calcolo del raggio dei punti sulla base della radice quadrata del numero totale di morti e dispersi
     datapd_border["radius"] = datapd_border["Total Number of Dead and Missing"].apply(
         lambda x: math.sqrt(x)
     )
 
+    # separazione delle coordinate in colonne distinte per latitudine e longitudine
     datapd_border[["lng", "lat"]] = pd.DataFrame(datapd_border["Coordinates"].tolist(), index=datapd_border.index)
 
-    # **Filtriamo i punti per prendere solo quelli vicini al confine Messico-USA**
+    # filtriamo i punti per prendere solo quelli vicini al confine Messico-USA, applicando limiti di latitudine e longitudine
     datapd_border = datapd_border[
-        (datapd_border["lat"] >= 25) & (datapd_border["lat"] <= 33) &  # Limiti di latitudine
-        (datapd_border["lng"] >= -118) & (datapd_border["lng"] <= -95)  # Limiti di longitudine
+        (datapd_border["lat"] >= 25) & (datapd_border["lat"] <= 33) &  # limiti di latitudine
+        (datapd_border["lng"] >= -118) & (datapd_border["lng"] <= -95)  # limiti di longitudine
     ]
 
-    # **Rettangolo 1: Rimuoviamo i punti nella Bassa California (Sud-Ovest)**
+    # rimozione dei punti fuori dall'area di interesse (Baja California e altre zone lontane dal confine)
     datapd_border = datapd_border[
-        ~((datapd_border["lat"] < 30) & (datapd_border["lng"] < -104))  # Sud-Ovest, Baja California
+        ~((datapd_border["lat"] < 30) & (datapd_border["lng"] < -104))  # sud-ovest, Baja California
     ]
 
     datapd_border = datapd_border[
@@ -1174,35 +1232,35 @@ def mexico_us_border_group(map_style):
       (datapd_border["lng"] > -101.5) & (datapd_border["lng"] < -99))
     ]
 
-    # Creiamo un array numpy con tutte le coordinate aggiornate
+    # creazione di un array numpy con tutte le coordinate aggiornate
     points = np.array(datapd_border[["lng", "lat"]])
 
-    # Calcoliamo l'inviluppo convesso (convex hull)
+    # calcolo dell'inviluppo convesso (convex hull) per delineare un poligono attorno ai punti
     hull = ConvexHull(points)
     hull_coordinates = [points[i].tolist() for i in hull.vertices]
 
-    # Chiudiamo il poligono tornando al primo punto
+    # chiudiamo il poligono tornando al primo punto
     hull_coordinates.append(hull_coordinates[0])
 
-    # Creiamo il layer con i punti
+    # creazione del layer Pydeck per visualizzare i punti sulla mappa
     points_layer = pdk.Layer(
         "ScatterplotLayer",
         datapd_border,
-        pickable=True,
-        opacity=1,
-        stroked=True,
-        filled=True,
-        radius_scale=1000,  # Amplifica il raggio calcolato
-        radius_min_pixels=2,
-        radius_max_pixels=1000,
-        line_width_min_pixels=1,
-        get_position="Coordinates",
-        get_radius="radius",
-        get_fill_color=[204, 0, 0],  # Punti rossi
-        get_line_color=[0, 0, 0],
+        pickable=True,  # abilita il tooltip interattivo
+        opacity=1,  # opacità completa dei punti
+        stroked=True,  # bordo visibile intorno ai punti
+        filled=True,  # punti pieni
+        radius_scale=1000,  # scala del raggio per migliorare la leggibilità
+        radius_min_pixels=2,  # dimensione minima dei punti
+        radius_max_pixels=1000,  # dimensione massima dei punti
+        line_width_min_pixels=1,  # spessore minimo del bordo dei punti
+        get_position="Coordinates",  # utilizzo delle coordinate lat/lon
+        get_radius="radius",  # dimensione del punto basata sulla variabile 'radius'
+        get_fill_color=[204, 0, 0],  # colore dei punti rosso
+        get_line_color=[0, 0, 0],  # bordo dei punti nero
     )
 
-    # Creiamo il layer con il poligono che racchiude i punti
+    # creazione del layer Pydeck con il poligono convesso che racchiude i punti
     polygon_data = [
         {"polygon": hull_coordinates, "name": "Mexico-US Border Convex Hull"}
     ]
@@ -1210,27 +1268,27 @@ def mexico_us_border_group(map_style):
     polygon_layer = pdk.Layer(
         "PolygonLayer",
         polygon_data,
-        stroked=True,
-        filled=True,
-        line_width_min_pixels=2,
-        get_polygon="polygon",
-        get_fill_color=[255, 255, 255, 150],  # Bianco semi-trasparente
-        get_line_color=[255, 255, 255],  # Bordo bianco
+        stroked=True,  # bordo visibile del poligono
+        filled=True,  # riempimento del poligono
+        line_width_min_pixels=2,  # spessore minimo del bordo
+        get_polygon="polygon",  # utilizzo delle coordinate per creare il poligono
+        get_fill_color=[255, 255, 255, 150],  # colore di riempimento bianco semi-trasparente
+        get_line_color=[255, 255, 255],  # bordo bianco
     )
 
-    # Configurazione della vista iniziale della mappa centrata sulla zona del confine
-    view = pdk.ViewState(latitude=29, longitude=-107, zoom=4.5, min_zoom=4.1,  max_zoom=8)
+    # configurazione della vista iniziale della mappa centrata sulla zona del confine
+    view = pdk.ViewState(latitude=29, longitude=-107, zoom=4.5, min_zoom=4.1, max_zoom=8)
 
-    # Creazione della mappa Pydeck con entrambi i layer
+    # creazione della mappa Pydeck con entrambi i layer (punti e poligono)
     map_deck = pdk.Deck(
-        layers=[polygon_layer, points_layer],  # Sovrapposizione dei layer
-        initial_view_state=view,
-        tooltip={"html": "Morti e dispersi: {Total Number of Dead and Missing}<br>Data: {Incident Date}"},
-        map_provider="mapbox",
-        map_style=map_style
+        layers=[polygon_layer, points_layer],  # sovrapposizione dei layer
+        initial_view_state=view,  # impostazione della vista iniziale della mappa
+        tooltip={"html": "Morti e dispersi: {Total Number of Dead and Missing}<br>Data: {Incident Date}"},  # tooltip interattivo
+        map_provider="mapbox",  # provider della mappa
+        map_style=map_style  # stile della mappa (politica o satellitare)
     )
 
-    # Mostriamo la mappa
+    # visualizzazione della mappa in Streamlit
     st.pydeck_chart(map_deck)
 
     st.markdown("""
@@ -1257,80 +1315,87 @@ def sahara_desert_group(map_style):
     La mappa seguente evidenzia la distribuzione degli incidenti lungo questa tratta, con una concentrazione di eventi nelle aree desertiche tra Niger, Chad, Sudan e Libia.
     """)
 
-    # Definizione del bounding box (rettangolo verde)
-    lat_min, lat_max = 12, 35  # Limiti di latitudine
-    lng_min, lng_max = -15, 40  # Limiti di longitudine
+    # definizione del bounding box (limiti geografici della regione d'interesse)
+    lat_min, lat_max = 12, 35  # limiti di latitudine
+    lng_min, lng_max = -15, 40  # limiti di longitudine
 
-    # Filtro per la rotta migratoria
+    # filtro per la rotta migratoria "Sahara Desert crossing"
     datapd_sahara = datapd[datapd["Migrantion route"] == "Sahara Desert crossing"].dropna(subset=["Coordinates"]).copy()
 
-    # Parsing delle coordinate
+    # funzione per convertire le coordinate da stringa a lista di float
     def parse_coordinates(coord):
         try:
             lat, lng = map(float, coord.split(","))
-            return [lng, lat]  # Inversione corretta lat/lng
+            return [lng, lat]  # inversione dell'ordine lat/lng
         except (ValueError, AttributeError):
             return None
 
+    # applicazione della funzione di parsing alle coordinate
     datapd_sahara["Coordinates"] = datapd_sahara["Coordinates"].apply(parse_coordinates)
-    datapd_sahara = datapd_sahara.dropna(subset=["Coordinates"])
+    datapd_sahara = datapd_sahara.dropna(subset=["Coordinates"])  # rimozione delle righe con valori nulli
 
-    # Creazione colonne lng/lat
+    # separazione delle coordinate in colonne distinte per latitudine e longitudine
     datapd_sahara[["lng", "lat"]] = pd.DataFrame(datapd_sahara["Coordinates"].tolist(), index=datapd_sahara.index)
 
-    # Filtro per il bounding box
+    # applicazione del filtro basato sul bounding box per selezionare solo i punti nel deserto del Sahara
     datapd_sahara = datapd_sahara[
         (datapd_sahara["lat"] >= lat_min) & (datapd_sahara["lat"] <= lat_max) &
         (datapd_sahara["lng"] >= lng_min) & (datapd_sahara["lng"] <= lng_max)
     ]
 
-    # Calcolo raggio
+    # calcolo del raggio dei punti sulla base della radice quadrata del numero totale di morti e dispersi
     datapd_sahara["radius"] = datapd_sahara["Total Number of Dead and Missing"].apply(math.sqrt)
 
+    # creazione di un array numpy con tutte le coordinate aggiornate
     points = np.array(datapd_sahara[["lng", "lat"]])
+
+    # calcolo dell'inviluppo convesso (convex hull) per delineare un poligono attorno ai punti
     hull = ConvexHull(points)
     hull_coordinates = [points[i].tolist() for i in hull.vertices] + [points[hull.vertices[0]].tolist()]
-    
-    # Layer punti
+
+    # creazione del layer Pydeck per visualizzare i punti sulla mappa
     points_layer = pdk.Layer(
         "ScatterplotLayer",
         datapd_sahara,
-        pickable=True,
-        opacity=1,
-        stroked=True,
-        filled=True,
-        radius_scale=1000,
-        radius_min_pixels=2,
-        radius_max_pixels=1000,
-        line_width_min_pixels=1,
-        get_position=["lng", "lat"],
-        get_radius="radius",
-        get_fill_color=[204, 0, 0],
-        get_line_color=[0, 0, 0],
+        pickable=True,  # abilita il tooltip interattivo
+        opacity=1,  # opacità completa dei punti
+        stroked=True,  # bordo visibile intorno ai punti
+        filled=True,  # punti pieni
+        radius_scale=1000,  # scala del raggio per migliorare la leggibilità
+        radius_min_pixels=2,  # dimensione minima dei punti
+        radius_max_pixels=1000,  # dimensione massima dei punti
+        line_width_min_pixels=1,  # spessore minimo del bordo dei punti
+        get_position=["lng", "lat"],  # utilizzo delle coordinate lat/lon
+        get_radius="radius",  # dimensione del punto basata sulla variabile 'radius'
+        get_fill_color=[204, 0, 0],  # colore dei punti rosso
+        get_line_color=[0, 0, 0],  # bordo dei punti nero
     )
 
-    # Layer poligono
+    # creazione del layer Pydeck con il poligono convesso che racchiude i punti
     polygon_layer = pdk.Layer(
         "PolygonLayer",
-        [{"polygon": hull_coordinates}] if hull_coordinates else [],
-        stroked=True,
-        filled=True,
-        line_width_min_pixels=2,
-        get_polygon="polygon",
-        get_fill_color=[255, 255, 255, 150],
-        get_line_color=[255, 255, 255]
+        [{"polygon": hull_coordinates}] if hull_coordinates else [],  # verifica se ci sono coordinate disponibili
+        stroked=True,  # bordo visibile del poligono
+        filled=True,  # riempimento del poligono
+        line_width_min_pixels=2,  # spessore minimo del bordo
+        get_polygon="polygon",  # utilizzo delle coordinate per creare il poligono
+        get_fill_color=[255, 255, 255, 150],  # colore di riempimento bianco semi-trasparente
+        get_line_color=[255, 255, 255],  # bordo bianco
     )
 
-    # Configurazione mappa
+    # configurazione della vista iniziale della mappa centrata sulla regione del Sahara
     view = pdk.ViewState(latitude=24, longitude=13, zoom=3.2, max_zoom=8, min_zoom=3)
+
+    # creazione della mappa Pydeck con entrambi i layer (punti e poligono)
     map_deck = pdk.Deck(
-        layers=[polygon_layer, points_layer],
-        initial_view_state=view,
-        tooltip={"html": "Morti e dispersi: {Total Number of Dead and Missing}<br>Data: {Incident Date}"},
-        map_provider="mapbox",
-        map_style=map_style
+        layers=[polygon_layer, points_layer],  # sovrapposizione dei layer
+        initial_view_state=view,  # impostazione della vista iniziale della mappa
+        tooltip={"html": "Morti e dispersi: {Total Number of Dead and Missing}<br>Data: {Incident Date}"},  # tooltip interattivo
+        map_provider="mapbox",  # provider della mappa
+        map_style=map_style  # stile della mappa (politica o satellitare)
     )
 
+    # visualizzazione della mappa in Streamlit
     st.pydeck_chart(map_deck)
 
     st.markdown("""
@@ -1347,52 +1412,66 @@ def sahara_desert_group(map_style):
     """)
 
 ## Implementazione Pagine ######################################################################################
+#1. Implementazione pagina di introduzione
 def page_introduction():
-    st.title(":red[Missing] Migrants Project")
+    st.title(":red[Missing] Migrants Project")  # titolo della pagina
+
+    # avviso per attivare il tema scuro per una migliore esperienza visiva
     st.markdown("""
     <div style="border: 1px solid white; padding: 15px; background-color: #2b2b2b; margin-bottom: 15px;">
         <b>Nota:</b> Attiva il tema scuro per una migliore esperienza. Vai su <b>Menu (in alto a destra)</b> > <b>Settings</b> > <b>Theme</b> > <b>Dark</b>.
     </div>
     """, unsafe_allow_html=True)
-    
+
+    # descrizione generale della crisi migratoria
     st.markdown("""
     Il mondo sta affrontando una crisi migratoria. In un’era di esodi e sfollamenti forzati, i governi ospitanti nei paesi sviluppati si sono sempre più impegnati a respingere i migranti.
     """)
 
+    # calcolo del numero totale di migranti morti o scomparsi e visualizzazione del valore
     total_dead_missing = datapd["Total Number of Dead and Missing"].sum()
     st.markdown(f"""
     ### Dal 2014 al 2021, oltre **:red[{total_dead_missing}]** migranti sono morti o scomparsi nel loro viaggio verso una vita migliore.
     """)
-    
+
+    # richiamo delle funzioni per la visualizzazione delle tragedie migratorie e del dataframe
     migration_tragedies()
     dataframe()
+
+    # suggerimento per proseguire con l'analisi
     st.markdown("""
     #### Prosegui con l'analisi
     Per approfondire ulteriormente, esplora le altre sezioni disponibili nel menu a sinistra.
     """)
-    
-def page_descriptive_analysis():
-    st.title("Analisi Descrittive")
 
+#2. Implementazione della pagina di analisi descrittiva
+def page_descriptive_analysis():
+    st.title("Analisi Descrittive")  # titolo della pagina
+
+    # introduzione alla sezione di analisi descrittiva
     st.markdown(
         "In questa sezione si propone un'analisi descrittiva delle variabili presenti nel dataset, "
         "con l'obiettivo di fornire una panoramica generale sulla loro distribuzione e sulle caratteristiche principali dei dati raccolti."
     )
 
+    # richiamo delle funzioni per la visualizzazione delle analisi
     regions_map()
     timeseries()
     barchart()
     piechart()
     stackedbarchart()
 
+    # suggerimento per proseguire con l'analisi
     st.markdown("""
     #### Prosegui con l'analisi
     Per approfondire ulteriormente, esplora le altre sezioni disponibili nel menu a sinistra.
     """)
 
+#3. Implenzentazione della pagina di analisi geospaziale
 def page_geo_analysis():
-    st.title("Visualizzazione Geospaziale delle Tragedie Migratorie")
+    st.title("Visualizzazione Geospaziale delle Tragedie Migratorie")  # titolo della pagina
 
+    # introduzione alla sezione di analisi geospaziale
     st.write("""
     In questa sezione si offre una rappresentazione visiva degli eventi tragici legati alla migrazione a livello globale. 
     Attraverso una serie di mappe interattive, è possibile individuare i punti in cui si sono verificati incidenti, 
@@ -1405,16 +1484,19 @@ def page_geo_analysis():
     e delle aree di maggiore transito e rischio.
     """)
 
+    # caricamento dell'immagine rappresentativa delle rotte migratorie
     image_folder = Path("images")
     image_path = image_folder / "flussi migratori2.png"
     st.image(str(image_path), use_container_width=True)
 
+    # introduzione alla selezione della tipologia di mappa
     st.write("""
     È inoltre possibile personalizzare la visualizzazione selezionando la tipologia di mappa preferita, 
     scegliendo tra una mappa politica e una mappa satellitare, 
     in modo da adattare l’analisi alle proprie esigenze di esplorazione dei dati.
     """)
 
+    # opzioni disponibili per la selezione dello stile della mappa
     map_style_options = ["Mappa Politica", "Mappa Satellitare"]
     selected_map_style = st.pills(
         "Seleziona il tipo di mappa",
@@ -1427,23 +1509,28 @@ def page_geo_analysis():
         st.warning("Seleziona un tipo di mappa per visualizzarle.")
         return
     
+    # assegnazione dello stile della mappa in base alla selezione dell'utente
     if selected_map_style == "Mappa Politica":
         map_style = pdk.map_styles.CARTO_DARK
     elif selected_map_style == "Mappa Satellitare":
         map_style = pdk.map_styles.SATELLITE
 
+    # richiamo delle funzioni per la visualizzazione delle mappe
     datapd_cleaned = points_map(map_style)
     heatmap(datapd_cleaned, map_style)
     points_map_by_cat(datapd_cleaned, map_style)
 
+    # suggerimento per proseguire con l'analisi
     st.markdown("""
     #### Prosegui con l'analisi
     Per approfondire ulteriormente, esplora le altre sezioni disponibili nel menu a sinistra.
     """)
 
+#4. Implementazione della pagina di analisi dei gruppi geografici
 def page_group_analysis():
-    st.title("Analisi dei gruppi")
+    st.title("Analisi dei gruppi")  # titolo della pagina
 
+    # introduzione alla sezione di analisi dei gruppi
     st.markdown("""
     Questa sezione analizza i principali **gruppi** geografici di incidenti migratori registrati nel dataset. 
     L'analisi è suddivisa in tre aree chiave: il **Mediterraneo**, il **confine tra Messico e Stati Uniti** e il **deserto del Sahara**. 
@@ -1452,16 +1539,22 @@ def page_group_analysis():
     L'obiettivo di questa analisi è identificare le tendenze nei dati e comprendere i fattori che contribuiscono alla pericolosità di queste rotte. 
     
     Le mappe interattive seguenti mostrano la distribuzione degli incidenti all'interno di ciascun cluster, fornendo un quadro chiaro delle zone più colpite e delle principali modalità di rischio associate a ciascuna area.
-    
+    """)
+
+    st.markdown("---")  # separatore grafico
+
+    # introduzione alla selezione della tipologia di mappa
+    st.markdown("""
     Anche in questa sezione è possibile personalizzare la visualizzazione selezionando la tipologia di mappa preferita, 
     scegliendo tra una mappa politica e una mappa satellitare.
     """)
 
+    # opzioni disponibili per la selezione dello stile della mappa
     map_style_options = ["Mappa Politica", "Mappa Satellitare"]
     selected_map_style = st.pills(
         "Seleziona il tipo di mappa",
         map_style_options,
-        default="Mappa Politica"
+        default="Mappa Satellitare"
     )
 
     # controllo se l'utente ha selezionato un'opzione
@@ -1469,11 +1562,13 @@ def page_group_analysis():
         st.warning("Seleziona un tipo di mappa per visualizzarle.")
         return
     
+    # assegnazione dello stile della mappa in base alla selezione dell'utente
     if selected_map_style == "Mappa Politica":
         map_style = pdk.map_styles.CARTO_DARK
     elif selected_map_style == "Mappa Satellitare":
         map_style = pdk.map_styles.SATELLITE
 
+    # richiamo delle funzioni per la visualizzazione delle mappe di gruppi geografici
     mediterranean_group(map_style)
     mexico_us_border_group(map_style)
     sahara_desert_group(map_style)
@@ -1560,14 +1655,14 @@ def page_group_analysis():
 
 # configurazione navigazione
 pages = {
-    "Introduzione": page_introduction,
-    "Analisi descrittive": page_descriptive_analysis,
-    "Analisi geospaziali": page_geo_analysis,
-    "Analisi dei gruppi e conclusioni": page_group_analysis
+    "Introduzione": page_introduction,  # pagina introduttiva
+    "Analisi descrittive": page_descriptive_analysis,  # pagina con analisi descrittive
+    "Analisi geospaziali": page_geo_analysis,  # pagina con visualizzazioni geospaziali
+    "Analisi dei gruppi e conclusioni": page_group_analysis  # pagina con analisi dei gruppi e conclusioni
 }
 
-st.sidebar.title("Navigazione")
-selection = st.sidebar.radio("Vai a:", list(pages.keys()))
+st.sidebar.title("Navigazione")  # titolo del menu di navigazione nella sidebar
+selection = st.sidebar.radio("Vai a:", list(pages.keys()))  # radio button per la selezione della pagina
 
-# esegue la pagina selezionata
+# esegue la pagina selezionata dall'utente
 pages[selection]()
