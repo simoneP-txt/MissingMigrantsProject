@@ -74,3 +74,53 @@ All'interno della cartella del progetto, esegui il seguente comando per avviare 
 uv run streamlit run app.py
 ```
 Il sito verrà aperto automaticamente nel browser.
+
+### **💡 Alternativa: usare il sito web**
+Se non sei interessato al codice e vuoi solo utilizzare l'applicazione, puoi accedere direttamente al sito tramite il link disponibile nella repository GitHub.
+
+## **Descrizione dei file principali**
+
+### **📌 app.py**
+`app.py` è il file principale del progetto. È il codice che viene eseguito ogni volta per avviare l'applicazione web sviluppata con **Streamlit**.  
+Contiene la logica per il caricamento dei dati, l'elaborazione delle informazioni e la visualizzazione interattiva attraverso mappe e grafici.  
+
+### **📌 data_prep.py**
+`data_prep.py` è uno script dedicato alla **preparazione dei dati** e al pre-processing di alcuni elementi chiave utilizzati nel progetto.  
+Ecco le principali funzionalità del file:
+
+- **Download del TopoJSON**: lo script scarica un file **TopoJSON** contenente i confini geografici dei paesi, utile per la visualizzazione delle mappe.
+- **Creazione di un DataFrame**: i dati estratti dal TopoJSON vengono convertiti in un **DataFrame Pandas**, assegnando inizialmente `"Null"` come valore per la regione di appartenenza.
+- **Esportazione in CSV**: se il file `countries.csv` non esiste già, viene creato e salvato localmente.
+- **Analisi della luminosità dei colori della heatmap**:  
+  - Viene definita una scala di colori **COLOR_BREWER_SCALE5**, utilizzata nella heatmap.  
+  - I colori vengono convertiti nel modello **HSL** per analizzare la loro luminosità.
+  - Un **grafico a linee** mostra la variazione della luminosità lungo la scala di colori, per garantire che la heatmap sia visivamente efficace.
+
+---
+
+## **📦 Librerie utilizzate**
+Nel progetto vengono utilizzate diverse librerie per la gestione dei dati, la visualizzazione e l'interattività:
+
+| **Libreria**         | **Utilizzo** |
+|----------------------|-------------------------------------------------------------------|
+| `streamlit`         | Creazione dell'interfaccia web interattiva. |
+| `polars`            | Gestione efficiente dei dati tabellari. |
+| `altair`            | Creazione di visualizzazioni interattive. |
+| `pandas`            | Manipolazione e analisi dei dati. |
+| `numpy`             | Calcoli numerici e gestione di array multidimensionali. |
+| `datetime`          | Gestione delle date e delle operazioni temporali. |
+| `pydeck`            | Visualizzazioni geospaziali interattive su mappe. |
+| `math`              | Operazioni matematiche di base. |
+| `matplotlib.pyplot` | Creazione di grafici statici e gestione delle colorbar. |
+| `io`                | Gestione dell'I/O per generare immagini. |
+| `scipy.spatial.ConvexHull` | Calcolo del **convex hull**, utile per analizzare i gruppi geografici. |
+| `pathlib.Path`      | Gestione dei percorsi dei file nel sistema operativo. |
+| `requests`          | Scaricamento di dati da URL esterni, come il file TopoJSON. |
+| `colorsys`          | Conversione dei colori tra diversi modelli di colore (RGB, HSL). |
+| `os`               | Interazione con il filesystem, ad esempio per controllare l'esistenza di file. |
+
+Queste librerie consentono di elaborare i dati, visualizzarli in modo efficace e costruire un'applicazione web interattiva per analizzare le tragedie migratorie.
+
+---
+
+🚀 **Ora il tuo README è completo!** Se vuoi aggiungere o migliorare qualcosa, dimmi pure! 😊
