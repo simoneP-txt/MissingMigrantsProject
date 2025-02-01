@@ -1440,9 +1440,13 @@ def page_introduction():
 
     # suggerimento per proseguire con l'analisi
     st.markdown("""
-    #### Prosegui con l'analisi
-    Per approfondire ulteriormente, esplora le altre sezioni disponibili nel menu a sinistra.
+    Per approfondire l'analisi, esplora le altre sezioni dal menu a sinistra o prosegui premendo il pulsante qui sotto.
     """)
+
+
+    if st.button("Prosegui all'Analisi Descrittiva"):
+        st.session_state["selected_page"] = "Analisi descrittive"
+        st.rerun()
 
 #2. Implementazione della pagina di analisi descrittiva
 def page_descriptive_analysis():
@@ -1463,9 +1467,13 @@ def page_descriptive_analysis():
 
     # suggerimento per proseguire con l'analisi
     st.markdown("""
-    #### Prosegui con l'analisi
-    Per approfondire ulteriormente, esplora le altre sezioni disponibili nel menu a sinistra.
+    Per approfondire l'analisi, esplora le altre sezioni dal menu a sinistra o prosegui premendo il pulsante qui sotto.
     """)
+
+
+    if st.button("Prosegui all'Analisi Geospaziale"):
+        st.session_state["selected_page"] = "Analisi geospaziali"
+        st.rerun()
 
 #3. Implenzentazione della pagina di analisi geospaziale
 def page_geo_analysis():
@@ -1522,9 +1530,12 @@ def page_geo_analysis():
 
     # suggerimento per proseguire con l'analisi
     st.markdown("""
-    #### Prosegui con l'analisi
-    Per approfondire ulteriormente, esplora le altre sezioni disponibili nel menu a sinistra.
+    Per approfondire l'analisi, esplora le altre sezioni dal menu a sinistra o prosegui premendo il pulsante qui sotto.
     """)
+
+    if st.button("Prosegui all'Analisi dei Gruppi e Conclusioni"):
+        st.session_state["selected_page"] = "Analisi dei gruppi e conclusioni"
+        st.rerun()
 
 #4. Implementazione della pagina di analisi dei gruppi geografici
 def page_group_analysis():
@@ -1661,8 +1672,22 @@ pages = {
     "Analisi dei gruppi e conclusioni": page_group_analysis  # pagina con analisi dei gruppi e conclusioni
 }
 
-st.sidebar.title("Navigazione")  # titolo del menu di navigazione nella sidebar
-selection = st.sidebar.radio("Vai a:", list(pages.keys()))  # radio button per la selezione della pagina
+page_order = {
+    "Introduzione": "Analisi descrittive",
+    "Analisi descrittive": "Analisi geospaziali",
+    "Analisi geospaziali": "Analisi dei gruppi e conclusioni"
+}
 
-# esegue la pagina selezionata dall'utente
+if "selected_page" not in st.session_state:
+    st.session_state["selected_page"] = "Introduzione"  # Pagina iniziale
+
+st.sidebar.title("Navigazione")
+selection = st.sidebar.radio("Vai a:", list(pages.keys()), index=list(pages.keys()).index(st.session_state["selected_page"]))
+
+# Aggiorna solo se la selezione è cambiata
+if selection != st.session_state["selected_page"]:
+    st.session_state["selected_page"] = selection
+    st.rerun()
+
+# Esegue la pagina selezionata
 pages[selection]()
